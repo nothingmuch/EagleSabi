@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Exceptions;
@@ -165,18 +166,21 @@ namespace WalletWasabi.EventSourcing
 		}
 
 		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
 		protected virtual void Prepared()
 		{
 			// Keep empty. To be overriden in tests.
 		}
 
 		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
 		protected virtual void Conflicted()
 		{
 			// Keep empty. To be overriden in tests.
 		}
 
 		// Hook for parallel critical section testing in DEBUG build only.
+		[Conditional("DEBUG")]
 		protected virtual void Appended()
 		{
 			// Keep empty. To be overriden in tests.

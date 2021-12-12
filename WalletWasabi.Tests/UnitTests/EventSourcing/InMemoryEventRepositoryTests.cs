@@ -214,6 +214,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 				.SequenceEqual(new[] { "MY_ID_1" }));
 		}
 
+#if DEBUG
+
 		[Fact]
 		public async Task AppendEvents_CriticalSectionConflicts_Async()
 		{
@@ -330,6 +332,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			}
 			Assert.True(result.SequenceEqual(expected));
 		}
+
+#endif
 
 		[Theory]
 		[InlineData(0, 1)]

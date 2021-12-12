@@ -83,6 +83,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.True(exception.Errors.Count > 0);
 		}
 
+#if DEBUG
+
 		[Fact]
 		public async Task RegisterInput_IdempotentRedelivery_Async()
 		{
@@ -182,6 +184,8 @@ namespace WalletWasabi.Tests.UnitTests.EventSourcing
 			Assert.IsType<TestRoundState>(result2?.State);
 			Assert.Equal(1, (result2?.State as TestRoundState)?.Inputs.Count);
 		}
+
+#endif
 
 		public void Dispose()
 		{
