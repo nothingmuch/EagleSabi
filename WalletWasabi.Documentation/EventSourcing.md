@@ -82,7 +82,21 @@ Event sourcing is an architectural pattern in which entities do not track their 
 
 ### Read-Model
 
+* Read-model handles all read-only clients' requests.
+* Read-model is [Eventually consistent](#eventual-consistency). That means its state might be transitionally slightly out of date when compared to [Event Store](#event-store).
+* Read-model has an internal copy of all the data. All queries are directly resolved from internal read-model state without touching the [Event Store](#event-store).
+* Read-model's internal state is updated by [Events](#events) received from [PubSub Bus](#pubsub-bus)
+* Read-model implementation must use at-least-once workaround of The Two Generals' Problem to guarantee no event is skipped.
+* In general all queries should be `O(m*log(n))` at the worst where `n` is the size of the dataset and `m` is the response size. To achieve that any denormalization or redundancy of data is allowed.
+
 ### Eventual Consistency
+
+* In an eventually consistent distributed system different services can have mutually inconsistent state for transitional period of time until all messages propagate through all the services of the system to achieve consistent state eventually in a bounded time.
+* If not specified otherwise we use Strong Eventual consistency. Any two nodes that have received the same (unordered) set of updates will be in the same state.
+  * That requires to deal with out of order event delivery and idempotency on event redelivery.
+  * It must be implement using the at-least-once workaround of the Two Generals' Problem throughtout all the components of the system.
+* source:
+  * https://en.wikipedia.org/wiki/Eventual_consistency
 
 ### Event-Storming
 
@@ -102,3 +116,4 @@ Event sourcing is an architectural pattern in which entities do not track their 
   * EventStore.com: https://www.eventstore.com/event-sourcing
   * Bounded-Context: https://martinfowler.com/bliki/BoundedContext.html
 * Event-Storming: https://en.wikipedia.org/wiki/Event_storming
+* Eventual Consistency: https://en.wikipedia.org/wiki/Eventual_consistency
