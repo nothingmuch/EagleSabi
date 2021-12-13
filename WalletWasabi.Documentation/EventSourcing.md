@@ -63,6 +63,14 @@ Event sourcing is an architectural pattern in which entities do not track their 
 
 ### Command
 
+* Command is an input for a state transition of an [Aggregate](#aggregate).
+* Command is implemented as an immutable serializable value object.
+* Command is received and processed by the [Command-Processor](#command-processor)
+* Command needs to contain [IdempotenceId](#idempotenceid) provided by the orignator of the command (client) to implement at-most-once work around of The Two Generals' Problem
+* Issuing a command to a [Command-Processor](#command-processor) is the only legal way of transitioning state of an [Aggregate](#aggregate) and thus generating new [Events](#event).
+* Commands are not persisted by default. Just events as a result of a successful command are persisted.
+* Command can fail. In such case an originator is informed by an error result of the command. However command failure is not broadcasted to the [PubSub Bus](#pubsub-bus) for general audience because state transition didn't happen so there is nothing to broadcast. And command failure is not persisted by default.
+
 ### Command-Processor
 
 ### Read-Model
@@ -71,6 +79,7 @@ Event sourcing is an architectural pattern in which entities do not track their 
 
 ### Event-Storming
 
+* Event-Storming is a process of defining and naming events by across team participation in a playful way with colorful sticky notes.
 * sources: 
   * https://en.wikipedia.org/wiki/Event_storming
 
