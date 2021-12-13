@@ -66,12 +66,19 @@ Event sourcing is an architectural pattern in which entities do not track their 
 * Command is an input for a state transition of an [Aggregate](#aggregate).
 * Command is implemented as an immutable serializable value object.
 * Command is received and processed by the [Command-Processor](#command-processor)
-* Command needs to contain [IdempotenceId](#idempotenceid) provided by the orignator of the command (client) to implement at-most-once work around of The Two Generals' Problem
+* Command needs to contain [IdempotenceId](#idempotenceid) provided by the orignator of the command (client) to implement at-most-once work around of The Two Generals' Problem.
+  * Second command with the same [IdempotenceId](#idempotenceid) is simply silently ignored.
 * Issuing a command to a [Command-Processor](#command-processor) is the only legal way of transitioning state of an [Aggregate](#aggregate) and thus generating new [Events](#event).
 * Commands are not persisted by default. Just events as a result of a successful command are persisted.
 * Command can fail. In such case an originator is informed by an error result of the command. However command failure is not broadcasted to the [PubSub Bus](#pubsub-bus) for general audience because state transition didn't happen so there is nothing to broadcast. And command failure is not persisted by default.
 
 ### Command-Processor
+
+* Command-Processor transitions state of an aggregate based on the [Command](#command) as an input and current internal state of the [Aggregate](#aggregate) by producing new [Events](#event).
+* Mathematically it is a state machine transition rule.
+* Command-Processor implementation must not have any side-effects. Command-Processor needs to be deterministic. The only input is [Command](#command) and internal [Aggregate](#aggregate) state and only output are new [Events](#event). Any external side-efect needs to be implemented externally as an reaction to a generated event by subscribing to an [PubSub Bus](#pubsub-bus)
+  * One of the practical reasons for banning side-effects is because command can be retried again in case of an optimistic concurrency conflict detected upon persisting events.
+* Command-Processor implementation can assume it is a single threaded and strongly sequentially serializable. Practical implementation is usually optimistic concurrency strategy where command is retried again on an up to date version of an [Aggregate](#aggregate) after conflict has been detected during persisting of [Events](#event).
 
 ### Read-Model
 
