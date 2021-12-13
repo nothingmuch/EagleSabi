@@ -1,12 +1,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Exceptions;
+using WalletWasabi.EventSourcing.Exceptions;
+using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.EventSourcing
 {

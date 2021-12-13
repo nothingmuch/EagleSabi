@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.Interfaces;
-using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {

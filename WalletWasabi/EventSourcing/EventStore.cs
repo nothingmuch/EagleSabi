@@ -8,7 +8,6 @@ using WalletWasabi.EventSourcing.Exceptions;
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.EventSourcing
 {

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.Exceptions;
 using WalletWasabi.EventSourcing.Interfaces;
-using WalletWasabi.Interfaces.EventSourcing;
 using WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain;
 using Xunit;
 

@@ -1,7 +1,6 @@
 using System.Threading;
 using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.Interfaces;
-using WalletWasabi.Interfaces.EventSourcing;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
