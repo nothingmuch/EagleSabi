@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Exceptions;
@@ -88,30 +86,49 @@ namespace WalletWasabi.EventSourcing
 				throw new AssertionFailedException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
 			}
 
-			var result = processor.Process(command, aggregate.State);
-
-			if (result.Success)
+			Result? result = null;
+			try
 			{
-				List<WrappedEvent> wrappedEvents = new();
-				foreach (var newEvent in result.Events)
+				result = processor.Process(command, aggregate.State);
+				if (result.Success)
 				{
-					sequenceId++;
-					wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
-					aggregate.Apply(newEvent);
+					List<WrappedEvent> wrappedEvents = new();
+					foreach (var newEvent in result.Events)
+					{
+						sequenceId++;
+						wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
+						aggregate.Apply(newEvent);
+					}
+
+					// No ation
+					Prepared();
+
+					await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
+						.ConfigureAwait(false);
+
+					// No action
+					Appended();
+
+					return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
 				}
-
-				// No ation
-				Prepared();
-
-				await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
-					.ConfigureAwait(false);
-
-				// No action
-				Appended();
-
-				return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
 			}
-			else
+			catch (OptimisticConcurrencyException)
+			{
+				throw;
+			}
+			catch (Exception ex)
+			{
+				throw new CommandFailedException(
+					aggregateType,
+					aggregateId,
+					sequenceId,
+					aggregate.State,
+					command,
+					ImmutableArray.Create(new Error(ex)),
+					null,
+					ex);
+			}
+			if (result?.Success == false)
 			{
 				throw new CommandFailedException(
 					aggregateType,
@@ -121,6 +138,7 @@ namespace WalletWasabi.EventSourcing
 					command,
 					result.Errors);
 			}
+			throw new AssertionFailedException($"Unexpected reached in {nameof(EventStore)}.{nameof(DoProcessCommandAsync)}().");
 		}
 
 		private IAggregate ApplyEvents(string aggregateType, IReadOnlyList<WrappedEvent> events)
