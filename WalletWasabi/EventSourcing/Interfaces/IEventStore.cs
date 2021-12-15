@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Exceptions;
+using WalletWasabi.EventSourcing.Records;
 
 namespace WalletWasabi.EventSourcing.Interfaces
 {

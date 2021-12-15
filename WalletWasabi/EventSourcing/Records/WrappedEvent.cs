@@ -1,7 +1,6 @@
-using System;
 using WalletWasabi.EventSourcing.Interfaces;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.Records
 {
 	public record WrappedEvent(long SequenceId, IEvent DomainEvent, Guid SourceId);
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalletWasabi.EventSourcing.Records;
 
 namespace WalletWasabi.EventSourcing.Interfaces
 {

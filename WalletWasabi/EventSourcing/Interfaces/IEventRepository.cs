@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.Exceptions;
+using WalletWasabi.EventSourcing.Records;
 
 namespace WalletWasabi.EventSourcing.Interfaces
 {

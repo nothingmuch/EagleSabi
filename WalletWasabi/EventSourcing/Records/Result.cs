@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.Records
 {
 	/// <summary>
 	/// Domain command result

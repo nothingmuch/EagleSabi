@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using WalletWasabi.EventSourcing.Interfaces;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.Records
 {
 	/// <summary>
 	/// Result of successfully processed and persisted command.

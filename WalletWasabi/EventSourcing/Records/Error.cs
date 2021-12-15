@@ -1,7 +1,7 @@
 using WalletWasabi.EventSourcing.Interfaces;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.EventSourcing
+namespace WalletWasabi.EventSourcing.Records
 {
 	public record Error : IError
 	{

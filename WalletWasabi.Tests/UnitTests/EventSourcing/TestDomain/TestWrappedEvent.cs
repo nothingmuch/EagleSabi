@@ -1,5 +1,5 @@
-using WalletWasabi.EventSourcing;
 using WalletWasabi.EventSourcing.Interfaces;
+using WalletWasabi.EventSourcing.Records;
 
 namespace WalletWasabi.Tests.UnitTests.EventSourcing.TestDomain
 {
