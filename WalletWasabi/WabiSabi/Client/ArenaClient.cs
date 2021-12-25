@@ -184,10 +184,10 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		[Obsolete("overload for garbage test compatibility")]
-		public Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
-			=> SignTransactionAsync(roundId, new(coin, bitcoinSecret), unsignedCoinJoin, cancellationToken);
+		internal Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
+			=> SignTransactionAsync(roundId, new SpendableCoin(coin, bitcoinSecret), unsignedCoinJoin, cancellationToken);
 
-		public async Task SignTransactionAsync(uint256 roundId, SpendableCoin coin, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
+		public async Task SignTransactionAsync(uint256 roundId, IAbstractCoinWithSignCapability coin, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
 		{
 			if (unsignedCoinJoin.Inputs.Count == 0)
 			{
@@ -195,7 +195,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			var txInput = signedCoinJoin.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.OutPoint);
+			var txInput = signedCoinJoin.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
 
 			if (txInput is null)
 			{
@@ -204,7 +204,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			coin.Sign(signedCoinJoin);
 
-			if (!txInput.VerifyScript(coin.Coin, out var error))
+			if (!txInput.VerifyScript(coin.TxOut, out var error))
 			{
 				throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 			}

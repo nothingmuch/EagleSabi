@@ -12,7 +12,7 @@ namespace WalletWasabi.WabiSabi.Client
 	// type, because CJC needs smartcoin functionality, but ArenaClient tests
 	// use Coin not SmartCoin, but unification is the goal of this refactor. An
 	// implicit conversion is provided as a syntactic bridge.
-	public record SpendableSmartCoin(SmartCoin SmartCoin, BitcoinSecret BitcoinSecret, Key IdentificationKey)
+	public record SpendableSmartCoin(SmartCoin SmartCoin, BitcoinSecret BitcoinSecret, Key IdentificationKey) : ISpendableSmartCoin
 	{
 		public OwnershipProof GenerateOwnershipProof(CoinJoinInputCommitmentData commitmentData)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
@@ -22,15 +22,12 @@ namespace WalletWasabi.WabiSabi.Client
 
 		// TODO provide minimal interfaces
 		public TxOut TxOut => SmartCoin.TxOut;
-		public uint Index => SmartCoin.Index;
-		public Money Amount => SmartCoin.Amount;
-		public uint256 TransactionId => SmartCoin.TransactionId;
-		public Script ScriptPubKey => SmartCoin.ScriptPubKey;
-		public HdPubKey HdPubKey => SmartCoin.HdPubKey;
-		public OutPoint OutPoint => SmartCoin.Coin.Outpoint;
-
-		[Obsolete("not sure which one to deprecate to be honest, but OutPoint vs Outpoint is inconsistent. follow Core?")]
 		public OutPoint Outpoint => SmartCoin.Coin.Outpoint;
+		public HdPubKey HdPubKey => SmartCoin.HdPubKey;
+
+		public bool CoinJoinInProgress { get => SmartCoin.CoinJoinInProgress; set => SmartCoin.CoinJoinInProgress = value; }
+		public bool SpentAccordingToBackend { get => SmartCoin.SpentAccordingToBackend; set => SmartCoin.SpentAccordingToBackend = value; }
+		public DateTimeOffset? BannedUntilUtc { get => SmartCoin.BannedUntilUtc; set => SmartCoin.BannedUntilUtc = value; }
 
 		public void Sign(Transaction transaction)
 		{
@@ -64,6 +61,11 @@ namespace WalletWasabi.WabiSabi.Client
 			var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 
 			return new SpendableSmartCoin(coin, secret, identificationKey);
+		}
+
+		public void SetIsBanned()
+		{
+			SmartCoin.SetIsBanned();
 		}
 	}
 }
