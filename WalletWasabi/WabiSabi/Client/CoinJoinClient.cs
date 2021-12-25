@@ -103,7 +103,7 @@ namespace WalletWasabi.WabiSabi.Client
 				InCriticalCoinJoinState = true;
 
 				// Calculate outputs values
-				var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
+				var registeredCoins = registeredAliceClients.Select(x => x.SpendableCoin.SmartCoin.Coin);
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 				// Calculate outputs values
@@ -203,7 +203,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 
 			// Gets the list of scheduled dates/time in the remaining available time frame when each alice has to be registered.
-			var remainingTimeForRegistration = ( roundState.InputRegistrationEnd - DateTimeOffset.UtcNow ) - TimeSpan.FromSeconds(15);
+			var remainingTimeForRegistration = (roundState.InputRegistrationEnd - DateTimeOffset.UtcNow) - TimeSpan.FromSeconds(15);
 
 			Logger.LogDebug($"Round ({roundState.Id}): Input registration started, it will end in {remainingTimeForRegistration.TotalMinutes} minutes.");
 
