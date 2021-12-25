@@ -2,10 +2,11 @@ using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public record SpendableCoin(Coin Coin, BitcoinSecret BitcoinSecret)
+	public record SpendableCoin(Coin Coin, BitcoinSecret BitcoinSecret) : IAbstractCoinWithSignCapability
 	{
 		// TODO provide minimal interfaces
 		public Money Amount => Coin.Amount;
+		public TxOut TxOut => Coin.TxOut;
 		public Script ScriptPubKey => Coin.ScriptPubKey;
 		public OutPoint OutPoint => Coin.Outpoint;
 

@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var spendableCoins = Coins.Select(c => SpendableSmartCoin.Create(c, KeyManager));
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(spendableCoins, KeyManager.GetSelfSpendDestinations, cancellationToken).ConfigureAwait(false);
+			await coinJoinClient.StartCoinJoinAsync(spendableCoins, KeyManager.GetSelfSpendScripts, cancellationToken).ConfigureAwait(false);
 
 			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		}

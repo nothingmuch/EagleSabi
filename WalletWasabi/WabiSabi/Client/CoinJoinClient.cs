@@ -41,7 +41,7 @@ namespace WalletWasabi.WabiSabi.Client
 			private set => _inCriticalCoinJoinState = value;
 		}
 
-		public async Task<bool> StartCoinJoinAsync(IEnumerable<SpendableSmartCoin> coins, Func<int, IEnumerable<IDestination>> getSelfSpendDestinations, CancellationToken cancellationToken)
+		public async Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 
@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(IEnumerable<SpendableSmartCoin> smartCoins, Func<int, IEnumerable<IDestination>> getSelfSpendDestinations, RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<ISpendableSmartCoin> smartCoins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, RoundState roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
@@ -93,14 +93,14 @@ namespace WalletWasabi.WabiSabi.Client
 				InCriticalCoinJoinState = true;
 
 				// Calculate outputs values
-				var registeredCoins = registeredAliceClients.Select(x => x.SpendableCoin.SmartCoin.Coin);
+				var registeredCoins = registeredAliceClients.Select(x => x.SpendableCoin as IAbstractCoin); // FIXME abstract
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
 				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
-				var theirCoins = constructionState.Inputs.Except(registeredCoins);
+				var theirCoins = constructionState.Inputs.Select(c => new CoinAdaptor(c)).Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
@@ -158,9 +158,9 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SpendableSmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<ISpendableSmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputAsync(SpendableSmartCoin coin, CancellationToken cancellationToken)
+			async Task<AliceClient?> RegisterInputAsync(ISpendableSmartCoin coin, CancellationToken cancellationToken)
 			{
 				try
 				{
@@ -289,11 +289,11 @@ namespace WalletWasabi.WabiSabi.Client
 		//
 		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
 		// expected anonymity set threshold.
-		private ImmutableList<SpendableSmartCoin> SelectCoinsForRound(IEnumerable<SpendableSmartCoin> coins, MultipartyTransactionParameters parameters) =>
+		private ImmutableList<ISpendableSmartCoin> SelectCoinsForRound(IEnumerable<ISpendableSmartCoin> coins, MultipartyTransactionParameters parameters) =>
 			coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-				.GroupBy(x => x.TransactionId)
+				.GroupBy(x => x.Outpoint.Hash)
 				.Select(x => x.OrderByDescending(y => y.Amount).First())
 				.OrderBy(x => x.HdPubKey.AnonymitySet)
 				.ThenByDescending(x => x.Amount)

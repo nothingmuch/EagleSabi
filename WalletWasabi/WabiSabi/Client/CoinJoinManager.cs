@@ -78,7 +78,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 					var coinjoinClient = new CoinJoinClient(HttpClientFactory, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, openedWallet.KeyManager.GetSelfSpendDestinations, cts.Token);
+					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, openedWallet.KeyManager.GetSelfSpendScripts, cts.Token);
 
 					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates.Select(x => x.SmartCoin), cts));
 					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
