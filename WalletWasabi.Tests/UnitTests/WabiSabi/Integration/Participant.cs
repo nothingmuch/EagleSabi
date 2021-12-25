@@ -1,9 +1,9 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -11,7 +11,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
@@ -86,13 +85,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient);
 			await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
 
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
+			var coinJoinClient = new CoinJoinClient(HttpClientFactory, roundStateUpdater);
 
-			var coinJoinClient = new CoinJoinClient(HttpClientFactory, kitchen, KeyManager, roundStateUpdater);
+			var spendableCoins = Coins.Select(c => SpendableSmartCoin.Create(c, KeyManager));
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartCoinJoinAsync(Coins, cancellationToken).ConfigureAwait(false);
+			await coinJoinClient.StartCoinJoinAsync(spendableCoins, KeyManager.GetSelfSpendDestinations, cancellationToken).ConfigureAwait(false);
 
 			await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 		}

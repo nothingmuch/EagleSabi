@@ -1,11 +1,11 @@
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NBitcoin;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -16,7 +16,6 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -74,7 +73,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+				.Select((x, i) => SpendableSmartCoin.Create(BitcoinFactory.CreateSmartCoin(x, amounts[i]), keyManager))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -124,13 +123,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
-
-			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, kitchen, keyManager, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, cts.Token));
+			Assert.True(await coinJoinClient.StartCoinJoinAsync(coins, keyManager.GetSelfSpendDestinations, cts.Token));
 
 			var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 			Assert.NotNull(broadcastedTx);
@@ -161,12 +157,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var coins = keyManager1.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+				.Select((x, i) => SpendableSmartCoin.Create(BitcoinFactory.CreateSmartCoin(x, amounts[i]), keyManager1))
 				.ToArray();
 
 			var badCoins = keyManager2.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, amounts[i]))
+				.Select((x, i) => SpendableSmartCoin.Create(BitcoinFactory.CreateSmartCoin(x, amounts[i]), keyManager2))
 				.ToArray();
 
 			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -220,13 +216,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			var roundState = await roundStateUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
-
-			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, kitchen, keyManager1, roundStateUpdater);
+			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, cts.Token).ConfigureAwait(false), cts.Token);
+			var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(coins, keyManager1.GetSelfSpendDestinations, cts.Token).ConfigureAwait(false), cts.Token);
 
 			// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
 			// when a signature is sent but it doesn't really send it.
@@ -245,8 +238,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.Setup(factory => factory.NewBackendHttpClient(It.IsAny<Mode>()))
 				.Returns(nonSigningHttpClient.Object);
 
-			var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, kitchen, keyManager2, roundStateUpdater);
-			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
+			var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, roundStateUpdater);
+			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, keyManager2.GetSelfSpendDestinations, roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
 
@@ -257,7 +250,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.NotNull(broadcastedTx);
 
 			Assert.Equal(
-				coins.Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
+				coins.Select(x => x.OutPoint.ToString()).OrderBy(x => x),
 				broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x));
 
 			await roundStateUpdater.StopAsync(CancellationToken.None);
