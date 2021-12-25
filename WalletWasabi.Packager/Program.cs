@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
@@ -277,6 +276,7 @@ namespace WalletWasabi.Packager
 					$"/p:ErrorReport=none",
 					$"/p:DocumentationFile=\"\"",
 					$"/p:Deterministic=true",
+					$"/p:ContinuousIntegrationBuild=true",
 					$"/p:RestoreLockedMode=true");
 
 				StartProcessAndWaitForExit(

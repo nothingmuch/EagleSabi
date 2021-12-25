@@ -1,0 +1,108 @@
+name: build and test
+
+on:
+  push:
+  pull_request:
+    branches: [ master ]
+    paths:
+    - '**.cs'
+    - '**.csproj'
+
+env:
+  DOTNET_VERSION: '6.0.101'
+
+jobs:
+  test:
+
+    name: test-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: WabiSabi "Unit" Tests
+      run: dotnet test --no-build --filter "(FullyQualifiedName!~Integration)&(FullyQualifiedName~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+
+    - name: Other "Unit" Tests
+      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx 
+
+    - name: '"Integration" "Unit" Tests'
+      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx 
+
+    #- name: '"Integration" Tests'
+    #  run: dotnet test --no-build --filter "(FullyQualifiedName!~UnitTests)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: TestResults
+        path: WalletWasabi.Tests/TestResults
+
+    - uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
+
+  build-backend:
+    name: build-backend-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Publish
+      run: dotnet publish --configuration Release --self-contained false /p:ContinuousIntegrationBuild=true WalletWasabi.Backend
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Backend (built on ${{matrix.os}})
+        path: "WalletWasabi.Backend/bin/Release/*/publish"
+
+  build-gui-with-packager:
+    name: build-gui-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build Packager
+      run: dotnet build --no-restore WalletWasabi.Packager
+
+    - name: Packager
+      run: cd WalletWasabi.Packager; dotnet run -- --onlybinaries
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Packager outputs (built on ${{matrix.os}})
+        path: "*/bin/dist"
