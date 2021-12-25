@@ -40,8 +40,8 @@ jobs:
       run: dotnet test --no-restore --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed"
 
     - name: Build (Release)
-      run: dotnet build --configuration Release --no-restore
-    
+      run: dotnet build --configuration Release --no-restore /p:ContinuousIntegrationBuild=true
+
     - name: '"Integration" "Unit" Tests'
       run: dotnet test --configuration Release --no-restore --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed"
 
