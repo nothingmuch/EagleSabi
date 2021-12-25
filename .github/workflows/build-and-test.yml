@@ -31,7 +31,19 @@ jobs:
       run: dotnet restore
       
     - name: Build
+      run: dotnet build --no-restore
+
+    - name: WabiSabi "Unit" Tests
+      run: dotnet test --no-restore --filter "(FullyQualifiedName!~Integration)&(FullyQualifiedName~WabiSabi)" --logger "console;verbosity=detailed"
+
+    - name: Other "Unit" Tests
+      run: dotnet test --no-restore --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed"
+
+    - name: Build (Release)
       run: dotnet build --configuration Release --no-restore
     
-    - name: Test
-      run: dotnet test --no-restore --filter "UnitTests" --logger "console;verbosity=detailed"
+    - name: '"Integration" "Unit" Tests'
+      run: dotnet test --configuration Release --no-restore --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed"
+
+    - name: '"Integration" Tests'
+      run: dotnet test --configuration Release --no-restore --filter "(FullyQualifiedName!~UnitTests)" --logger "console;verbosity=detailed"
