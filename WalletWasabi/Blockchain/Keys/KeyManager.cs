@@ -380,6 +380,12 @@ namespace WalletWasabi.Blockchain.Keys
 			ToFile();
 		}
 
+		public IEnumerable<IDestination> GetSelfSpendDestinations(int howMany)
+		{
+			AssertLockedInternalKeysIndexed(howMany);
+			return GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked).Cast<IDestination>();
+		}
+
 		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
 		{
 			if (keyState is null)

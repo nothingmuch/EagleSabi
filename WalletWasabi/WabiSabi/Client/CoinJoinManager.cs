@@ -70,17 +70,17 @@ namespace WalletWasabi.WabiSabi.Client
 
 				foreach (var openedWallet in openedWallets.Select(x => x.Value))
 				{
-					var coinCandidates = SelectCandidateCoins(openedWallet).ToArray();
+					var coinCandidates = SelectCandidateCoins(openedWallet).ToImmutableArray();
 					if (coinCandidates.Length == 0)
 					{
 						continue;
 					}
 
-					var coinjoinClient = new CoinJoinClient(HttpClientFactory, openedWallet.Kitchen, openedWallet.KeyManager, RoundStatusUpdater);
+					var coinjoinClient = new CoinJoinClient(HttpClientFactory, RoundStatusUpdater);
 					var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, cts.Token);
+					var coinjoinTask = coinjoinClient.StartCoinJoinAsync(coinCandidates, openedWallet.KeyManager.GetSelfSpendDestinations, cts.Token);
 
-					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates, cts));
+					trackedWallets.Add(openedWallet.WalletName, new WalletTrackingData(openedWallet, coinjoinClient, coinjoinTask, coinCandidates.Select(x => x.SmartCoin), cts));
 					WalletStatusChanged?.Invoke(this, new WalletStatusChangedEventArgs(openedWallet, IsCoinJoining: true));
 				}
 
@@ -157,13 +157,14 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => x.Kitchen.HasIngredients)
 				.ToImmutableDictionary(x => x.WalletName, x => x);
 
-		private IEnumerable<SmartCoin> SelectCandidateCoins(Wallet openedWallet)
+		private IEnumerable<SpendableSmartCoin> SelectCandidateCoins(Wallet openedWallet)
 		{
 			return openedWallet.Coins
 				.Available()
 				.Confirmed()
 				.Where(x => x.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
-				.Where(x => !CoinRefrigerator.IsFrozen(x));
+				.Where(x => !CoinRefrigerator.IsFrozen(x))
+				.Select(x => SpendableSmartCoin.Create(x, openedWallet));
 		}
 
 		private record WalletTrackingData(Wallet Wallet, CoinJoinClient CoinJoinClient, Task<bool> CoinJoinTask, IEnumerable<SmartCoin> CoinCandidates, CancellationTokenSource CancellationTokenSource);

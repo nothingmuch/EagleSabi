@@ -5,9 +5,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -16,7 +13,6 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -28,21 +24,15 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public CoinJoinClient(
 			IBackendHttpClientFactory httpClientFactory,
-			Kitchen kitchen,
-			KeyManager keymanager,
 			RoundStateUpdater roundStatusUpdater)
 		{
 			HttpClientFactory = httpClientFactory;
-			Kitchen = kitchen;
-			Keymanager = keymanager;
 			RoundStatusUpdater = roundStatusUpdater;
 			SecureRandom = new SecureRandom();
 		}
 
 		private SecureRandom SecureRandom { get; }
 		public IBackendHttpClientFactory HttpClientFactory { get; }
-		public Kitchen Kitchen { get; }
-		public KeyManager Keymanager { get; }
 		private RoundStateUpdater RoundStatusUpdater { get; }
 
 		public bool InCriticalCoinJoinState
@@ -51,7 +41,7 @@ namespace WalletWasabi.WabiSabi.Client
 			private set => _inCriticalCoinJoinState = value;
 		}
 
-		public async Task<bool> StartCoinJoinAsync(IEnumerable<SmartCoin> coins, CancellationToken cancellationToken)
+		public async Task<bool> StartCoinJoinAsync(IEnumerable<SpendableSmartCoin> coins, Func<int, IEnumerable<IDestination>> getSelfSpendDestinations, CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 
@@ -64,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			for (var tries = 0; tries < tryLimit; tries++)
 			{
-				if (await StartRoundAsync(coins, currentRoundState, cancellationToken).ConfigureAwait(false))
+				if (await StartRoundAsync(coins, getSelfSpendDestinations, currentRoundState, cancellationToken).ConfigureAwait(false))
 				{
 					return true;
 				}
@@ -84,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<SpendableSmartCoin> smartCoins, Func<int, IEnumerable<IDestination>> getSelfSpendDestinations, RoundState roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
@@ -114,9 +104,8 @@ namespace WalletWasabi.WabiSabi.Client
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
-				Keymanager.AssertLockedInternalKeysIndexed(howMany: outputValues.Count());
-				var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
-				var outputTxOuts = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
+				var ownAddresses = getSelfSpendDestinations(outputValues.Count());
+				var outputTxOuts = Enumerable.Zip(outputValues, ownAddresses, (amount, dest) => new TxOut(amount, dest));
 
 				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
 				DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
@@ -169,9 +158,9 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SpendableSmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputAsync(SmartCoin coin, CancellationToken cancellationToken)
+			async Task<AliceClient?> RegisterInputAsync(SpendableSmartCoin coin, CancellationToken cancellationToken)
 			{
 				try
 				{
@@ -183,18 +172,7 @@ namespace WalletWasabi.WabiSabi.Client
 						roundState.CreateVsizeCredentialClient(SecureRandom),
 						arenaRequestHandler);
 
-					var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
-					var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-					if (hdKey.PrivateKey.PubKey.WitHash.ScriptPubKey != coin.ScriptPubKey)
-					{
-						throw new InvalidOperationException("The key cannot generate the utxo scriptpubkey. This could happen if the wallet password is not the correct one.");
-					}
-
-					var masterKey = Keymanager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
-					var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
-					var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
-
-					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, secret, identificationKey, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (HttpRequestException)
 				{
@@ -311,7 +289,7 @@ namespace WalletWasabi.WabiSabi.Client
 		//
 		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
 		// expected anonymity set threshold.
-		private ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, MultipartyTransactionParameters parameters) =>
+		private ImmutableList<SpendableSmartCoin> SelectCoinsForRound(IEnumerable<SpendableSmartCoin> coins, MultipartyTransactionParameters parameters) =>
 			coins
 				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
 				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
