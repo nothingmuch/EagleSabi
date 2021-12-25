@@ -27,23 +27,32 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install dependencies
+    - name: Restore
       run: dotnet restore
-      
+
     - name: Build
       run: dotnet build --no-restore
 
     - name: WabiSabi "Unit" Tests
-      run: dotnet test --no-restore --filter "(FullyQualifiedName!~Integration)&(FullyQualifiedName~WabiSabi)" --logger "console;verbosity=detailed"
+      run: dotnet test --no-build --filter "(FullyQualifiedName!~Integration)&(FullyQualifiedName~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
 
     - name: Other "Unit" Tests
-      run: dotnet test --no-restore --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed"
+      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx 
 
     - name: Build (Release)
       run: dotnet build --configuration Release --no-restore /p:ContinuousIntegrationBuild=true
 
     - name: '"Integration" "Unit" Tests'
-      run: dotnet test --configuration Release --no-restore --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed"
+      run: dotnet test --configuration Release --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx 
 
-    - name: '"Integration" Tests'
-      run: dotnet test --configuration Release --no-restore --filter "(FullyQualifiedName!~UnitTests)" --logger "console;verbosity=detailed"
+    #- name: '"Integration" Tests'
+    #  run: dotnet test --configuration Release --no-build --filter "(FullyQualifiedName!~UnitTests)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: TestResults
+        path: WalletWasabi.Tests/TestResults
+
+    - uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
