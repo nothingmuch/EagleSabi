@@ -17,7 +17,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class CoinJoinClient
+	public class CoinJoinClient : ICoinJoinClient
 	{
 		private const int MaxInputsRegistrableByWallet = 7; // how many
 		private volatile bool _inCriticalCoinJoinState;
@@ -41,7 +41,16 @@ namespace WalletWasabi.WabiSabi.Client
 			private set => _inCriticalCoinJoinState = value;
 		}
 
-		public async Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, CancellationToken cancellationToken)
+		public Task<bool> GetInCriticalCoinJoinStateAsync(CancellationToken cancellationToken = default)
+				=> Task.FromResult(InCriticalCoinJoinState);
+
+		public Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, CancellationToken cancellationToken = default)
+		{
+			Task<IEnumerable<Script>> GetAsync(int i, CancellationToken _) => Task.FromResult(getSelfSpendDestinations(i));
+			return StartCoinJoinAsync(coins, GetAsync, cancellationToken);
+		}
+
+		public async Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> getSelfSpendDestinations, CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
 
@@ -74,7 +83,7 @@ namespace WalletWasabi.WabiSabi.Client
 		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
-		public async Task<bool> StartRoundAsync(IEnumerable<ISpendableSmartCoin> smartCoins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, RoundState roundState, CancellationToken cancellationToken)
+		public async Task<bool> StartRoundAsync(IEnumerable<ISpendableSmartCoin> smartCoins, Func<int, CancellationToken, Task<IEnumerable<Script>>> getSelfSpendDestinations, RoundState roundState, CancellationToken cancellationToken)
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
@@ -104,7 +113,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
-				var ownAddresses = getSelfSpendDestinations(outputValues.Count());
+				var ownAddresses = await getSelfSpendDestinations(outputValues.Count(), cancellationToken).ConfigureAwait(false);
 				var outputTxOuts = Enumerable.Zip(outputValues, ownAddresses, (amount, dest) => new TxOut(amount, dest));
 
 				DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoins, outputTxOuts, roundState.FeeRate, roundState.MaxVsizeAllocationPerAlice);
@@ -295,7 +304,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
 				.GroupBy(x => x.Outpoint.Hash)
 				.Select(x => x.OrderByDescending(y => y.Amount).First())
-				.OrderBy(x => x.HdPubKey.AnonymitySet)
+				.OrderBy(x => x.AnonymitySetSizeEstimate)
 				.ThenByDescending(x => x.Amount)
 				.Take(MaxInputsRegistrableByWallet)
 				.ToShuffled()

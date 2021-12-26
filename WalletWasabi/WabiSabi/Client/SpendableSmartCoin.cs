@@ -1,5 +1,7 @@
 using NBitcoin;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
@@ -21,18 +23,15 @@ namespace WalletWasabi.WabiSabi.Client
 					commitmentData);
 
 		// TODO provide minimal interfaces
-		public TxOut TxOut => SmartCoin.TxOut;
-		public OutPoint Outpoint => SmartCoin.Coin.Outpoint;
-		public HdPubKey HdPubKey => SmartCoin.HdPubKey;
+		public Coin Coin => SmartCoin.Coin;
+		public TxOut TxOut => Coin.TxOut;
+		public OutPoint Outpoint => Coin.Outpoint;
+		public int AnonymitySetSizeEstimate => SmartCoin.HdPubKey.AnonymitySet;
 
 		public bool CoinJoinInProgress { get => SmartCoin.CoinJoinInProgress; set => SmartCoin.CoinJoinInProgress = value; }
 		public bool SpentAccordingToBackend { get => SmartCoin.SpentAccordingToBackend; set => SmartCoin.SpentAccordingToBackend = value; }
 		public DateTimeOffset? BannedUntilUtc { get => SmartCoin.BannedUntilUtc; set => SmartCoin.BannedUntilUtc = value; }
-
-		public void Sign(Transaction transaction)
-		{
-			transaction.Sign(BitcoinSecret, SmartCoin.Coin);
-		}
+		public bool IsBanned => SmartCoin.IsBanned;
 
 		public static implicit operator SpendableCoin(SpendableSmartCoin coin) => new(coin.SmartCoin.Coin, coin.BitcoinSecret);
 
@@ -67,5 +66,11 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			SmartCoin.SetIsBanned();
 		}
+
+		public Task<OwnershipProof> GenerateOwnershipProofAsync(CoinJoinInputCommitmentData commitmentData, CancellationToken _ = default)
+			=> Task.FromResult(GenerateOwnershipProof(commitmentData));
+
+		public Task<(uint, WitScript)> SignAsync(Transaction transaction, CancellationToken cancellationToken = default)
+			=> ((SpendableCoin)this).SignAsync(transaction, cancellationToken);
 	}
 }

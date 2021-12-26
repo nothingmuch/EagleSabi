@@ -1,5 +1,8 @@
 @0xc7ccb605fc198a84;
 
+using CSharp = import "csharp.capnp";
+$CSharp.namespace("WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin");
+
 struct Money {
 	satoshis @0 :UInt64;
 }
@@ -18,10 +21,11 @@ struct TxOut {
 }
 
 struct UInt256 {
-	x0 @0 :UInt64;
-	x1 @1 :UInt64;
-	x2 @2 :UInt64;
-	x3 @3 :UInt64;
+	data @0 :Data;
+	# x0 @0 :UInt64;
+	# x1 @1 :UInt64;
+	# x2 @2 :UInt64;
+	# x3 @3 :UInt64;
 }
 
 struct OutPoint {
@@ -31,6 +35,6 @@ struct OutPoint {
 
 struct Coin {
 	outpoint @0 :OutPoint;
-	txout @1 :TxOut;
+	txOut @1 :TxOut;
 }
 

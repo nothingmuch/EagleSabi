@@ -12,4 +12,8 @@
     <PackageReference Include="CapnpC.CSharp.MsBuild.Generation" Version="1.3.118" />
   </ItemGroup>
 
+  <ItemGroup>
+	  <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+  </ItemGroup>
+
 </Project>

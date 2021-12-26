@@ -194,22 +194,8 @@ namespace WalletWasabi.WabiSabi.Client
 				throw new ArgumentException("No inputs to sign.", nameof(unsignedCoinJoin));
 			}
 
-			var signedCoinJoin = unsignedCoinJoin.Clone();
-			var txInput = signedCoinJoin.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
-
-			if (txInput is null)
-			{
-				throw new InvalidOperationException($"Missing input.");
-			}
-
-			coin.Sign(signedCoinJoin);
-
-			if (!txInput.VerifyScript(coin.TxOut, out var error))
-			{
-				throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
-			}
-
-			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, txInput.Index, txInput.WitScript), cancellationToken).ConfigureAwait(false);
+			var (index, witScript) = await coin.SignAsync(unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
+			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, index, witScript), cancellationToken).ConfigureAwait(false);
 		}
 
 		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)

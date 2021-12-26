@@ -92,7 +92,8 @@ namespace WalletWasabi.WabiSabi.Client
 			AliceClient? aliceClient;
 			try
 			{
-				var ownershipProof = coin.GenerateOwnershipProof(new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
+				var commitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id);
+				var ownershipProof = await coin.GenerateOwnershipProofAsync(commitmentData, cancellationToken).ConfigureAwait(false);
 				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 				aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 				coin.CoinJoinInProgress = true;

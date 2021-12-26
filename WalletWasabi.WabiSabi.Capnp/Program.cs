@@ -1,2 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+// TODO
+// - start tor
+// - build http client
+// - round state updater
+// - coinjoin client
+// - expose capnp CoinJoinClient on STDIO

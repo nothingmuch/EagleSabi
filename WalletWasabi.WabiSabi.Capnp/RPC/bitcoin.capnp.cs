@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CapnpGen
+namespace WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin
 {
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xec5ffd5cdd3da528UL)]
     public class Money : ICapnpSerializable
@@ -195,8 +195,8 @@ namespace CapnpGen
         void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
             var reader = READER.create(arg_);
-            ScriptPubKey = CapnpSerializable.Create<CapnpGen.Script>(reader.ScriptPubKey);
-            Value = CapnpSerializable.Create<CapnpGen.Money>(reader.Value);
+            ScriptPubKey = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script>(reader.ScriptPubKey);
+            Value = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money>(reader.Value);
             applyDefaults();
         }
 
@@ -215,13 +215,13 @@ namespace CapnpGen
         {
         }
 
-        public CapnpGen.Script ScriptPubKey
+        public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script ScriptPubKey
         {
             get;
             set;
         }
 
-        public CapnpGen.Money Value
+        public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money Value
         {
             get;
             set;
@@ -238,8 +238,8 @@ namespace CapnpGen
             public static READER create(DeserializerState ctx) => new READER(ctx);
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            public CapnpGen.Script.READER ScriptPubKey => ctx.ReadStruct(0, CapnpGen.Script.READER.create);
-            public CapnpGen.Money.READER Value => ctx.ReadStruct(1, CapnpGen.Money.READER.create);
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script.READER ScriptPubKey => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script.READER.create);
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money.READER Value => ctx.ReadStruct(1, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money.READER.create);
         }
 
         public class WRITER : SerializerState
@@ -249,15 +249,15 @@ namespace CapnpGen
                 this.SetStruct(0, 2);
             }
 
-            public CapnpGen.Script.WRITER ScriptPubKey
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script.WRITER ScriptPubKey
             {
-                get => BuildPointer<CapnpGen.Script.WRITER>(0);
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script.WRITER>(0);
                 set => Link(0, value);
             }
 
-            public CapnpGen.Money.WRITER Value
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money.WRITER Value
             {
-                get => BuildPointer<CapnpGen.Money.WRITER>(1);
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money.WRITER>(1);
                 set => Link(1, value);
             }
         }
@@ -270,19 +270,13 @@ namespace CapnpGen
         void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
             var reader = READER.create(arg_);
-            X0 = reader.X0;
-            X1 = reader.X1;
-            X2 = reader.X2;
-            X3 = reader.X3;
+            Data = reader.Data;
             applyDefaults();
         }
 
         public void serialize(WRITER writer)
         {
-            writer.X0 = X0;
-            writer.X1 = X1;
-            writer.X2 = X2;
-            writer.X3 = X3;
+            writer.Data.Init(Data);
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -294,25 +288,7 @@ namespace CapnpGen
         {
         }
 
-        public ulong X0
-        {
-            get;
-            set;
-        }
-
-        public ulong X1
-        {
-            get;
-            set;
-        }
-
-        public ulong X2
-        {
-            get;
-            set;
-        }
-
-        public ulong X3
+        public IReadOnlyList<byte> Data
         {
             get;
             set;
@@ -329,41 +305,20 @@ namespace CapnpGen
             public static READER create(DeserializerState ctx) => new READER(ctx);
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            public ulong X0 => ctx.ReadDataULong(0UL, 0UL);
-            public ulong X1 => ctx.ReadDataULong(64UL, 0UL);
-            public ulong X2 => ctx.ReadDataULong(128UL, 0UL);
-            public ulong X3 => ctx.ReadDataULong(192UL, 0UL);
+            public IReadOnlyList<byte> Data => ctx.ReadList(0).CastByte();
         }
 
         public class WRITER : SerializerState
         {
             public WRITER()
             {
-                this.SetStruct(4, 0);
+                this.SetStruct(0, 1);
             }
 
-            public ulong X0
+            public ListOfPrimitivesSerializer<byte> Data
             {
-                get => this.ReadDataULong(0UL, 0UL);
-                set => this.WriteData(0UL, value, 0UL);
-            }
-
-            public ulong X1
-            {
-                get => this.ReadDataULong(64UL, 0UL);
-                set => this.WriteData(64UL, value, 0UL);
-            }
-
-            public ulong X2
-            {
-                get => this.ReadDataULong(128UL, 0UL);
-                set => this.WriteData(128UL, value, 0UL);
-            }
-
-            public ulong X3
-            {
-                get => this.ReadDataULong(192UL, 0UL);
-                set => this.WriteData(192UL, value, 0UL);
+                get => BuildPointer<ListOfPrimitivesSerializer<byte>>(0);
+                set => Link(0, value);
             }
         }
     }
@@ -375,7 +330,7 @@ namespace CapnpGen
         void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
             var reader = READER.create(arg_);
-            Txid = CapnpSerializable.Create<CapnpGen.UInt256>(reader.Txid);
+            Txid = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256>(reader.Txid);
             Nout = reader.Nout;
             applyDefaults();
         }
@@ -395,7 +350,7 @@ namespace CapnpGen
         {
         }
 
-        public CapnpGen.UInt256 Txid
+        public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256 Txid
         {
             get;
             set;
@@ -418,7 +373,7 @@ namespace CapnpGen
             public static READER create(DeserializerState ctx) => new READER(ctx);
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            public CapnpGen.UInt256.READER Txid => ctx.ReadStruct(0, CapnpGen.UInt256.READER.create);
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256.READER Txid => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256.READER.create);
             public uint Nout => ctx.ReadDataUInt(0UL, 0U);
         }
 
@@ -429,9 +384,9 @@ namespace CapnpGen
                 this.SetStruct(1, 1);
             }
 
-            public CapnpGen.UInt256.WRITER Txid
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256.WRITER Txid
             {
-                get => BuildPointer<CapnpGen.UInt256.WRITER>(0);
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256.WRITER>(0);
                 set => Link(0, value);
             }
 
@@ -450,15 +405,15 @@ namespace CapnpGen
         void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
             var reader = READER.create(arg_);
-            Outpoint = CapnpSerializable.Create<CapnpGen.OutPoint>(reader.Outpoint);
-            Txout = CapnpSerializable.Create<CapnpGen.TxOut>(reader.Txout);
+            Outpoint = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint>(reader.Outpoint);
+            TxOut = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut>(reader.TxOut);
             applyDefaults();
         }
 
         public void serialize(WRITER writer)
         {
             Outpoint?.serialize(writer.Outpoint);
-            Txout?.serialize(writer.Txout);
+            TxOut?.serialize(writer.TxOut);
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -470,13 +425,13 @@ namespace CapnpGen
         {
         }
 
-        public CapnpGen.OutPoint Outpoint
+        public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint Outpoint
         {
             get;
             set;
         }
 
-        public CapnpGen.TxOut Txout
+        public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut TxOut
         {
             get;
             set;
@@ -493,8 +448,8 @@ namespace CapnpGen
             public static READER create(DeserializerState ctx) => new READER(ctx);
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            public CapnpGen.OutPoint.READER Outpoint => ctx.ReadStruct(0, CapnpGen.OutPoint.READER.create);
-            public CapnpGen.TxOut.READER Txout => ctx.ReadStruct(1, CapnpGen.TxOut.READER.create);
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint.READER Outpoint => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint.READER.create);
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut.READER TxOut => ctx.ReadStruct(1, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut.READER.create);
         }
 
         public class WRITER : SerializerState
@@ -504,15 +459,15 @@ namespace CapnpGen
                 this.SetStruct(0, 2);
             }
 
-            public CapnpGen.OutPoint.WRITER Outpoint
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint.WRITER Outpoint
             {
-                get => BuildPointer<CapnpGen.OutPoint.WRITER>(0);
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint.WRITER>(0);
                 set => Link(0, value);
             }
 
-            public CapnpGen.TxOut.WRITER Txout
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut.WRITER TxOut
             {
-                get => BuildPointer<CapnpGen.TxOut.WRITER>(1);
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut.WRITER>(1);
                 set => Link(1, value);
             }
         }
