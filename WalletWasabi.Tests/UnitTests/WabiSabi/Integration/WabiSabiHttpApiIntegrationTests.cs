@@ -239,7 +239,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				.Returns(nonSigningHttpClient.Object);
 
 			var badCoinJoinClient = new CoinJoinClient(mockNonSigningHttpClientFactory.Object, roundStateUpdater);
-			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, keyManager2.GetSelfSpendScripts, roundState, cts.Token).ConfigureAwait(false), cts.Token);
+			var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, (i, _) => Task.FromResult(keyManager2.GetSelfSpendScripts(i)), roundState, cts.Token).ConfigureAwait(false), cts.Token);
 
 			await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });
 

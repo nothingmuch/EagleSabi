@@ -14,7 +14,7 @@ namespace WalletWasabi.WabiSabi.Client
 	// type, because CJC needs smartcoin functionality, but ArenaClient tests
 	// use Coin not SmartCoin, but unification is the goal of this refactor. An
 	// implicit conversion is provided as a syntactic bridge.
-	public record SpendableSmartCoin(SmartCoin SmartCoin, BitcoinSecret BitcoinSecret, Key IdentificationKey) : ISpendableSmartCoin
+	public record SpendableSmartCoin(SmartCoin SmartCoin, BitcoinSecret BitcoinSecret, Key IdentificationKey) : ISpendableSmartCoin, IMutableCoinJoinProperties
 	{
 		public OwnershipProof GenerateOwnershipProof(CoinJoinInputCommitmentData commitmentData)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
@@ -32,6 +32,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public bool SpentAccordingToBackend { get => SmartCoin.SpentAccordingToBackend; set => SmartCoin.SpentAccordingToBackend = value; }
 		public DateTimeOffset? BannedUntilUtc { get => SmartCoin.BannedUntilUtc; set => SmartCoin.BannedUntilUtc = value; }
 		public bool IsBanned => SmartCoin.IsBanned;
+		public bool IsConfirmed => SmartCoin.Confirmed;
 
 		public static implicit operator SpendableCoin(SpendableSmartCoin coin) => new(coin.SmartCoin.Coin, coin.BitcoinSecret);
 
@@ -72,5 +73,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public Task<(uint, WitScript)> SignAsync(Transaction transaction, CancellationToken cancellationToken = default)
 			=> ((SpendableCoin)this).SignAsync(transaction, cancellationToken);
+
+		public void Dispose()
+		{
+		}
 	}
 }

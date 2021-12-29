@@ -27,50 +27,22 @@ struct DateTimeOffset {
 	unixMilliseconds @0 :Int64;
 }
 
-interface IntProperty {
-	getValue @0 () -> (value :Int32);
+interface CoinJoinEvents {
+	coinJoinStarted @0 () -> ();
+	coinJoinNoLongerInProgress @1 () -> ();
+	reportedSpentAccordingToBackend @2 () -> ();
+	banned @3 (until :DateTimeOffset) -> ();
 }
 
-interface BoolProperty {
-	getValue @0 () -> (value :Bool);
+struct CoinStatus {
+	isConfirmed @0 :Bool;
+	isBanned @1 :Bool;
+	anonymitySetSizeEstimate @2 :Int32;
 }
 
-interface MutableBool extends(BoolProperty) {
-	setValue @0 (value :Bool) -> ();
-}
-
-struct Option(T) {
-	union {
-		none @0 :Void;
-		some @1 :T;
-	}
-}
-
-interface Property(T) {
-	getValue @0 () -> (value :T);
-}
-
-interface Mutable(T) extends(Property(T)) {
-	setValue @0 (value :T) -> ();
-}
-
-
-interface HorribleIsBannedProperty extends(BoolProperty) {
-	refresh @0 () -> ();
-}
-
-# TODO clean up
-struct CoinState {
-	anonymitySetSizeEstimate @0 :IntProperty;
-	coinJoinInProgress @1 :MutableBool;
-	spentAccordingToBackend @2 :MutableBool;
-	bannedUntilUtc @3 :Mutable(Option(DateTimeOffset));
-	isBanned @4 :HorribleIsBannedProperty;
-	isConfirmed @5 :BoolProperty;
-}
-
-interface SpendableSmartCoin extends(SpendableCoin) {
-	state @0 () -> (state :CoinState);
+# spend capability implies exclusive control, disposal = releasing the lock
+interface SpendableSmartCoin extends(SpendableCoin, CoinJoinEvents) {
+	getStatus @0 () -> (status :CoinStatus);
 }
 
 interface Wallet {
@@ -78,7 +50,7 @@ interface Wallet {
 	generateSelfSpendScripts @1 (count :Int32) -> (scriptPubKeys :List(Bitcoin.Script));
 }
 
-interface CoinJoinClient {
+interface CoinJoinParticipant {
 	startCoinJoin @0 (wallet :Wallet) -> (succeeded :Bool); # TODO return tx or error
 	inCriticalCoinJoinState @1 () -> (inCritical :Bool); # TODO replace with events
 }

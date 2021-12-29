@@ -159,10 +159,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			finally
 			{
-				foreach (var aliceClient in registeredAliceClients)
-				{
-					aliceClient.Finish();
-				}
+				Task.WaitAll(registeredAliceClients.Select(a => a.Finish()).ToArray(), cancellationToken);
 				InCriticalCoinJoinState = false;
 			}
 		}

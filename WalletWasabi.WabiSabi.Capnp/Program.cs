@@ -4,3 +4,4 @@
 // - round state updater
 // - coinjoin client
 // - expose capnp CoinJoinClient on STDIO
+Console.WriteLine("TODO");

@@ -96,7 +96,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var ownershipProof = await coin.GenerateOwnershipProofAsync(commitmentData, cancellationToken).ConfigureAwait(false);
 				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 				aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
-				coin.CoinJoinInProgress = true;
+				await coin.CoinJoinStartedAsync().ConfigureAwait(false);
 
 				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
 			}
@@ -107,18 +107,17 @@ namespace WalletWasabi.WabiSabi.Client
 					switch (wpe.ErrorCode)
 					{
 						case WabiSabiProtocolErrorCode.InputSpent:
-							coin.SpentAccordingToBackend = true;
+							await coin.ReportedSpentAccordingToBackendAsync().ConfigureAwait(false);
 							Logger.LogInfo($"{coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 							break;
 
 						case WabiSabiProtocolErrorCode.InputBanned:
-							coin.BannedUntilUtc = DateTimeOffset.UtcNow.AddDays(1);
-							coin.SetIsBanned();
+							await coin.BannedAsync(DateTimeOffset.UtcNow.AddDays(1)).ConfigureAwait(false); // FIXME why isn't this in the error?
 							Logger.LogInfo($"{coin.Outpoint} is banned.");
 							break;
 
 						case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-							coin.SpentAccordingToBackend = false;
+							// WTF does this have to do with whitelisting? coin.SpentAccordingToBackend = false;
 							Logger.LogWarning($"{coin.Outpoint} cannot be registered in the blame round.");
 							break;
 
@@ -196,7 +195,6 @@ namespace WalletWasabi.WabiSabi.Client
 			try
 			{
 				await RemoveInputAsync(cancellationToken).ConfigureAwait(false);
-				SpendableCoin.CoinJoinInProgress = false;
 				Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SpendableCoin.Outpoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
@@ -206,7 +204,7 @@ namespace WalletWasabi.WabiSabi.Client
 					switch (wpe.ErrorCode)
 					{
 						case WabiSabiProtocolErrorCode.RoundNotFound:
-							SpendableCoin.CoinJoinInProgress = false;
+							await SpendableCoin.CoinJoinNoLongerInProgressAsync().ConfigureAwait(false);
 							Logger.LogInfo($"{SpendableCoin.Outpoint} the round was not found. Nothing to unregister.");
 							break;
 
@@ -221,15 +219,15 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		public void Finish()
+		public async Task Finish()
 		{
-			SpendableCoin.CoinJoinInProgress = false;
+			await SpendableCoin.CoinJoinNoLongerInProgressAsync().ConfigureAwait(false);
 		}
 
 		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
 			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
-			SpendableCoin.CoinJoinInProgress = false;
+			await SpendableCoin.CoinJoinNoLongerInProgressAsync().ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
