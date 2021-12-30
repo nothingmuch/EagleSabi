@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+
+env:
+  DOTNET_VERSION: '6.0.101'
+
+jobs:
+  build-backend:
+    name: build-backend-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Publish
+      run: dotnet publish --configuration Release --self-contained false /p:ContinuousIntegrationBuild=true WalletWasabi.Backend
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Backend (built on ${{matrix.os}})
+        path: "WalletWasabi.Backend/bin/Release/*/publish"
+
+  build-gui-with-packager:
+    name: build-gui-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build Packager
+      run: dotnet build --no-restore WalletWasabi.Packager
+
+    - name: Packager
+      run: cd WalletWasabi.Packager; dotnet run -- --onlybinaries
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Packager outputs (built on ${{matrix.os}})
+        path: "*/bin/dist"
