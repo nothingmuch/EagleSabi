@@ -1,6 +1,6 @@
 namespace WalletWasabi.WabiSabi.Client
 {
-	public interface ISpendableCoin : IAbstractCoinWithSignCapability, IAbstractCoinWithOwnershipProvingCapability
+	public interface ISpendableCoin : IAsyncCoinWithSignCapability, IAsyncCoinWithOwnershipProvingCapability
 	{
 	}
 }

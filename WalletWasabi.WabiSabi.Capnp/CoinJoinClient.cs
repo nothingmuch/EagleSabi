@@ -13,20 +13,16 @@ namespace WalletWasabi.WabiSabi.Capnp
 	// Async also needs to be embraced because these blocking wrappers are not
 	// a good fit, the CoinState API is really clunky and should be replaced
 	// with something event oriented.
-	public record SpendableSmartCoinClient(RPC.CoinJoin.ISpendableSmartCoin Rpc) : Client.ISpendableSmartCoin
+	public record SpendableSmartCoinClient(RPC.CoinJoin.ISpendableSmartCoin Rpc) : Client.ISpendableSmartCoin, IDisposable
 	{
 		private static Coin ConvertCoin(RPC.Bitcoin.Coin coin)
 			=> new(new OutPoint(new uint256(coin.Outpoint.Txid.Data.ToArray()), coin.Outpoint.Nout),
 				   new TxOut(Money.Satoshis(coin.TxOut.Value.Satoshis), new Script(coin.TxOut.ScriptPubKey.Data)));
 
-		private Lazy<Coin> _coin = new Lazy<Coin>(() => ConvertCoin(Rpc.Coin().Result));
-		private Coin Coin => _coin.Value;
+		public async Task<Coin> GetCoinAsync(CancellationToken cancellationToken_ = default) => ConvertCoin(await Rpc.Coin(cancellationToken_));
 
-		private RPC.CoinJoin.CoinStatus State => Rpc.GetStatus().Result;
+		private RPC.CoinJoin.CoinStatus State => Task.Run(() => Rpc.GetStatus()).Result;
 
-		public TxOut TxOut => Coin.TxOut;
-
-		public OutPoint Outpoint => Coin.Outpoint;
 		public int AnonymitySetSizeEstimate => State.AnonymitySetSizeEstimate;
 
 		public bool IsBanned => State.IsBanned;
@@ -64,20 +60,24 @@ namespace WalletWasabi.WabiSabi.Capnp
 		public Task Banned(RPC.CoinJoin.DateTimeOffset until, CancellationToken cancellationToken_ = default)
 			=> SpendableSmartCoin.BannedAsync(DateTimeOffset.FromUnixTimeMilliseconds(until.UnixMilliseconds), cancellationToken_);
 
-		public Task<RPC.Bitcoin.Coin> Coin(CancellationToken cancellationToken_ = default)
-			=> Task.FromResult<RPC.Bitcoin.Coin>(new()
+		public async Task<RPC.Bitcoin.Coin> Coin(CancellationToken cancellationToken_ = default)
+		{
+			var coin = await SpendableSmartCoin.GetCoinAsync(cancellationToken_).ConfigureAwait(false);
+
+			return new()
 			{
 				TxOut = new()
 				{
-					ScriptPubKey = new() { Data = SpendableSmartCoin.TxOut.ScriptPubKey.ToBytes() },
-					Value = new() { Satoshis = SpendableSmartCoin.TxOut.Value },
+					ScriptPubKey = new() { Data = coin.TxOut.ScriptPubKey.ToBytes() },
+					Value = new() { Satoshis = coin.TxOut.Value },
 				},
 				Outpoint = new()
 				{
-					Txid = new() { Data = SpendableSmartCoin.OutPoint.Hash.ToBytes() },
-					Nout = SpendableSmartCoin.OutPoint.N,
+					Txid = new() { Data = coin.Outpoint.Hash.ToBytes() },
+					Nout = coin.Outpoint.N,
 				}
-			});
+			};
+		}
 
 		public Task CoinJoinNoLongerInProgress(CancellationToken cancellationToken_ = default)
 			=> SpendableSmartCoin.CoinJoinNoLongerInProgressAsync(cancellationToken_);
@@ -111,58 +111,68 @@ namespace WalletWasabi.WabiSabi.Capnp
 			var (i, witness) = await SpendableSmartCoin.SignAsync(Transaction.Load(unsignedTransaction.Data.ToArray(), Network.Main), cancellationToken_);
 			return (i, new RPC.Bitcoin.WitScript() { Pushes = witness.Pushes.ToImmutableArray() });
 		}
+	}
 
-		public record WalletClient(RPC.CoinJoin.IWallet Wallet)
+	public record WalletClient(RPC.CoinJoin.IWallet Wallet) : IDisposable
+	{
+		public void Dispose()
 		{
-			public async Task<IEnumerable<Client.ISpendableSmartCoin>> GetCoinsAsync(CancellationToken cancellationToken = default)
-				=> (await Wallet.Coins(cancellationToken)).Select(c => new SpendableSmartCoinClient(c));
-
-			public async Task<IEnumerable<Script>> GetSelfSpendDestinationsAsync(int count, CancellationToken cancellationToken = default)
-				=> (await Wallet.GenerateSelfSpendScripts(count, cancellationToken)).Select(s => new Script(s.Data.ToArray()));
+			Wallet.Dispose();
 		}
 
-		public record WalletService(IEnumerable<ISpendableSmartCoin> Coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> GenerateSelfSpendScripts) : RPC.CoinJoin.IWallet
-		{
-			async Task<IReadOnlyList<RPC.CoinJoin.ISpendableSmartCoin>> RPC.CoinJoin.IWallet.Coins(CancellationToken _)
-				=> Coins.Select(c => new SpendableSmartCoinService(c)).Cast<RPC.CoinJoin.ISpendableSmartCoin>().ToImmutableArray();
+		public async Task<IEnumerable<Client.ISpendableSmartCoin>> GetCoinsAsync(CancellationToken cancellationToken = default)
+			=> (await Wallet.Coins(cancellationToken)).Select(c => new SpendableSmartCoinClient(c)).ToImmutableArray();
 
-			async Task<IReadOnlyList<RPC.Bitcoin.Script>> RPC.CoinJoin.IWallet.GenerateSelfSpendScripts(int count, CancellationToken cancellationToken)
-				=> (await GenerateSelfSpendScripts(count, cancellationToken)).Select(s => new RPC.Bitcoin.Script()
-				{
-					Data = s.ToBytes()
-				}).ToImmutableArray();
+		public async Task<IEnumerable<Script>> GetSelfSpendDestinationsAsync(int count, CancellationToken cancellationToken = default)
+			=> (await Wallet.GenerateSelfSpendScripts(count, cancellationToken)).Select(s => new Script(s.Data.ToArray())).ToImmutableArray();
+	}
 
-			public void Dispose()
+	public record WalletService(ImmutableArray<ISpendableSmartCoin> Coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> GenerateSelfSpendScripts) : RPC.CoinJoin.IWallet
+	{
+		Task<IReadOnlyList<RPC.CoinJoin.ISpendableSmartCoin>> RPC.CoinJoin.IWallet.Coins(CancellationToken _)
+			=> Task.FromResult(Coins.Select(c => new SpendableSmartCoinService(c) as RPC.CoinJoin.ISpendableSmartCoin).ToImmutableArray() as IReadOnlyList<RPC.CoinJoin.ISpendableSmartCoin>);
+
+		async Task<IReadOnlyList<RPC.Bitcoin.Script>> RPC.CoinJoin.IWallet.GenerateSelfSpendScripts(int count, CancellationToken cancellationToken)
+			=> (await GenerateSelfSpendScripts(count, cancellationToken)).Select(s => new RPC.Bitcoin.Script()
 			{
-			}
+				Data = s.ToBytes()
+			}).ToImmutableArray();
+
+		public void Dispose()
+		{
+		}
+	}
+
+	public record CoinJoinerClient(RPC.CoinJoin.ICoinJoiner Rpc) : Client.ICoinJoinClient, IDisposable
+	{
+		public void Dispose()
+		{
+			Rpc.Dispose();
 		}
 
-		public record CoinJoinParticipantClient(RPC.CoinJoin.ICoinJoinParticipant Rpc) : Client.ICoinJoinClient
-		{
-			public Task<bool> GetInCriticalCoinJoinStateAsync(CancellationToken cancellationToken = default)
-				=> Rpc.InCriticalCoinJoinState(cancellationToken);
+		public Task<bool> GetInCriticalCoinJoinStateAsync(CancellationToken cancellationToken = default)
+			=> Rpc.InCriticalCoinJoinState(cancellationToken);
 
-			public Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> getSelfSpendDestinations, CancellationToken cancellationToken)
-			{
-				using WalletService wallet = new(coins, getSelfSpendDestinations);
-				return Rpc.StartCoinJoin(wallet, cancellationToken);
-			}
+		public Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> getSelfSpendDestinations, CancellationToken cancellationToken)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+			=> Rpc.StartCoinJoin(wallet: new WalletService(coins.ToImmutableArray(), getSelfSpendDestinations), cancellationToken);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+	}
+
+	public record CoinJoinerService(Client.ICoinJoinClient Client) : RPC.CoinJoin.ICoinJoiner
+	{
+		public void Dispose()
+		{
 		}
 
-		public record CoinJoinParticipantService(Client.ICoinJoinClient Client) : RPC.CoinJoin.ICoinJoinParticipant
+		public Task<bool> InCriticalCoinJoinState(CancellationToken cancellationToken_ = default)
+			=> Client.GetInCriticalCoinJoinStateAsync(cancellationToken_);
+
+		public async Task<bool> StartCoinJoin(RPC.CoinJoin.IWallet wallet, CancellationToken cancellationToken_ = default)
 		{
-			public void Dispose()
-			{
-			}
-
-			public Task<bool> InCriticalCoinJoinState(CancellationToken cancellationToken_ = default)
-				=> Client.GetInCriticalCoinJoinStateAsync(cancellationToken_);
-
-			public async Task<bool> StartCoinJoin(RPC.CoinJoin.IWallet wallet, CancellationToken cancellationToken_ = default)
-			{
-				WalletClient adaptor = new(wallet);
-				return await Client.StartCoinJoinAsync(await adaptor.GetCoinsAsync(cancellationToken_), adaptor.GetSelfSpendDestinationsAsync, cancellationToken_);
-			}
+			using WalletClient adaptor = new(wallet);
+			var coins = (await adaptor.GetCoinsAsync(cancellationToken_)).ToImmutableArray();
+			return await Client.StartCoinJoinAsync(coins, adaptor.GetSelfSpendDestinationsAsync, cancellationToken_);
 		}
 	}
 }

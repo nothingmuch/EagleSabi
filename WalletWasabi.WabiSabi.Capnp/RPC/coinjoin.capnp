@@ -17,6 +17,7 @@ struct RawTransaction {
 	data @0 :Data;
 }
 
+# TODO front load coin data: struct SpendableCoin { coin :Coin; spendCapability interface { ... } }
 interface SpendableCoin {
 	coin @0 () -> (coin :Bitcoin.Coin);
 	proveOwnership @1 (commitmentData :CommitmentData) -> (ownershipProof :OwnershipProof);
@@ -41,6 +42,7 @@ struct CoinStatus {
 }
 
 # spend capability implies exclusive control, disposal = releasing the lock
+# TODO front load coin data: struct SpendableSmartCoin { coin :Coin; status :CoinStatus; spendCapability interface { ... } }
 interface SpendableSmartCoin extends(SpendableCoin, CoinJoinEvents) {
 	getStatus @0 () -> (status :CoinStatus);
 }
@@ -50,7 +52,7 @@ interface Wallet {
 	generateSelfSpendScripts @1 (count :Int32) -> (scriptPubKeys :List(Bitcoin.Script));
 }
 
-interface CoinJoinParticipant {
+interface CoinJoiner {
 	startCoinJoin @0 (wallet :Wallet) -> (succeeded :Bool); # TODO return tx or error
 	inCriticalCoinJoinState @1 () -> (inCritical :Bool); # TODO replace with events
 }

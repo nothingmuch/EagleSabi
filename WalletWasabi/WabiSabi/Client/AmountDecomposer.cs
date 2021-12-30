@@ -27,7 +27,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public int OutputSize { get; }
 		private ImmutableArray<Money> StandardDenominationsPlusFee { get; }
 
-		public IEnumerable<Money> Decompose(IEnumerable<IAbstractCoin> myInputCoins, IEnumerable<IAbstractCoin> allInputCoins)
+		public IEnumerable<Money> Decompose(IEnumerable<Coin> myInputCoins, IEnumerable<Coin> allInputCoins)
 		{
 			var histogram = GetDenominationFrequency(allInputCoins);
 
@@ -73,7 +73,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return outputAmounts;
 		}
 
-		private Dictionary<Money, long> GetDenominationFrequency(IEnumerable<IAbstractCoin> allInputCoins)
+		private Dictionary<Money, long> GetDenominationFrequency(IEnumerable<Coin> allInputCoins)
 		{
 			var secondLargestInput = allInputCoins.OrderByDescending(x => x.Amount).Skip(1).FirstOrDefault();
 			IEnumerable<Money> demonsForBreakDown = StandardDenominationsPlusFee.Where(x => secondLargestInput is null || x <= secondLargestInput.EffectiveValue(FeeRate));
@@ -94,7 +94,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return denomProbabilities;
 		}
 
-		private IEnumerable<Money> BreakDown(IAbstractCoin coin, IEnumerable<Money> denominations)
+		private IEnumerable<Money> BreakDown(Coin coin, IEnumerable<Money> denominations)
 		{
 			var remaining = coin.EffectiveValue(FeeRate);
 

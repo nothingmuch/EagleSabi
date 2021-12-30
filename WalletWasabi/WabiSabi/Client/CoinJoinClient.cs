@@ -44,12 +44,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task<bool> GetInCriticalCoinJoinStateAsync(CancellationToken cancellationToken = default)
 				=> Task.FromResult(InCriticalCoinJoinState);
 
-		public Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, CancellationToken cancellationToken = default)
-		{
-			Task<IEnumerable<Script>> GetAsync(int i, CancellationToken _) => Task.FromResult(getSelfSpendDestinations(i));
-			return StartCoinJoinAsync(coins, GetAsync, cancellationToken);
-		}
-
 		public async Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> getSelfSpendDestinations, CancellationToken cancellationToken)
 		{
 			var currentRoundState = await RoundStatusUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cancellationToken).ConfigureAwait(false);
@@ -80,6 +74,12 @@ namespace WalletWasabi.WabiSabi.Client
 			return false;
 		}
 
+		public Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, CancellationToken cancellationToken = default)
+		{
+			Task<IEnumerable<Script>> GetAsync(int i, CancellationToken _) => Task.FromResult(getSelfSpendDestinations(i));
+			return StartCoinJoinAsync(coins, GetAsync, cancellationToken);
+		}
+
 		/// <summary>Attempt to participate in a specified round.</summary>
 		/// <param name="roundState">Defines the round parameter and state information to use.</param>
 		/// <returns>Whether or not the round resulted in a successful transaction.</returns>
@@ -87,10 +87,8 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var constructionState = roundState.Assert<ConstructionState>();
 
-			var coinCandidates = SelectCoinsForRound(smartCoins, constructionState.Parameters);
-
 			// Register coins.
-			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(coinCandidates, roundState, cancellationToken).ConfigureAwait(false);
+			var registeredAliceClients = await CreateRegisterAndConfirmCoinsAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
 				Logger.LogInfo($"Round ({roundState.Id}): There is no available alices to participate with.");
@@ -102,14 +100,16 @@ namespace WalletWasabi.WabiSabi.Client
 				InCriticalCoinJoinState = true;
 
 				// Calculate outputs values
-				var registeredCoins = registeredAliceClients.Select(x => x.SpendableCoin as IAbstractCoin); // FIXME abstract
+				var registeredCoinsTasks = registeredAliceClients.Select(async x => await x.SpendableCoin.GetCoinAsync().ConfigureAwait(false)).ToArray();
+				Task.WaitAll(registeredCoinsTasks, cancellationToken);
+				var registeredCoins = registeredCoinsTasks.Select(t => t.Result);
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 				// Calculate outputs values
 				roundState = await RoundStatusUpdater.CreateRoundAwaiter(rs => rs.Id == roundState.Id, cancellationToken).ConfigureAwait(false);
 				constructionState = roundState.Assert<ConstructionState>();
 				AmountDecomposer amountDecomposer = new(roundState.FeeRate, roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min, Constants.P2WPKHOutputSizeInBytes, (int)availableVsize);
-				var theirCoins = constructionState.Inputs.Select(c => new CoinAdaptor(c)).Except(registeredCoins);
+				var theirCoins = constructionState.Inputs.Except(registeredCoins);
 				var outputValues = amountDecomposer.Decompose(registeredCoins, theirCoins);
 
 				// Get all locked internal keys we have and assert we have enough.
@@ -166,8 +166,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<ISpendableSmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 		{
-			async Task<AliceClient?> RegisterInputAsync(ISpendableSmartCoin coin, CancellationToken cancellationToken)
+			async Task<AliceClient?> RegisterInputAsync(ISpendableSmartCoin spendableCoin, CancellationToken cancellationToken)
 			{
+				using var coin = spendableCoin;
 				try
 				{
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
@@ -282,29 +283,5 @@ namespace WalletWasabi.WabiSabi.Client
 
 			await Task.WhenAll(readyRequests).ConfigureAwait(false);
 		}
-
-		// Selects coin candidates for participating in a round.
-		// The criteria is the following:
-		// * Only coin with amount in the allowed range
-		// * Only coins with allowed script types
-		// * Only one coin (the biggest one) from the same transaction (do not consolidate same transaction outputs)
-		//
-		// Then prefer:
-		// * less private coins should be the first ones
-		// * bigger coins first (this makes economical sense because mix more money paying less network fees)
-		//
-		// Note: this method works on already pre-filteres coins: those available and that didn't reached the
-		// expected anonymity set threshold.
-		private ImmutableList<ISpendableSmartCoin> SelectCoinsForRound(IEnumerable<ISpendableSmartCoin> coins, MultipartyTransactionParameters parameters) =>
-			coins
-				.Where(x => parameters.AllowedInputAmounts.Contains(x.Amount))
-				.Where(x => parameters.AllowedInputTypes.Any(t => x.ScriptPubKey.IsScriptType(t)))
-				.GroupBy(x => x.Outpoint.Hash)
-				.Select(x => x.OrderByDescending(y => y.Amount).First())
-				.OrderBy(x => x.AnonymitySetSizeEstimate)
-				.ThenByDescending(x => x.Amount)
-				.Take(MaxInputsRegistrableByWallet)
-				.ToShuffled()
-				.ToImmutableList();
 	}
 }

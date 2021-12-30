@@ -171,6 +171,7 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public IReadOnlyList<IReadOnlyList<byte>> Pushes => ctx.ReadList(0).CastData();
+            public bool HasPushes => ctx.IsStructFieldNonNull(0);
         }
 
         public class WRITER : SerializerState
@@ -239,7 +240,9 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script.READER ScriptPubKey => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script.READER.create);
+            public bool HasScriptPubKey => ctx.IsStructFieldNonNull(0);
             public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money.READER Value => ctx.ReadStruct(1, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Money.READER.create);
+            public bool HasValue => ctx.IsStructFieldNonNull(1);
         }
 
         public class WRITER : SerializerState
@@ -374,6 +377,7 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256.READER Txid => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.UInt256.READER.create);
+            public bool HasTxid => ctx.IsStructFieldNonNull(0);
             public uint Nout => ctx.ReadDataUInt(0UL, 0U);
         }
 
@@ -449,7 +453,9 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint.READER Outpoint => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.OutPoint.READER.create);
+            public bool HasOutpoint => ctx.IsStructFieldNonNull(0);
             public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut.READER TxOut => ctx.ReadStruct(1, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.TxOut.READER.create);
+            public bool HasTxOut => ctx.IsStructFieldNonNull(1);
         }
 
         public class WRITER : SerializerState

@@ -10,5 +10,11 @@ namespace WalletWasabi.WabiSabi.Client
 		Task<bool> GetInCriticalCoinJoinStateAsync(CancellationToken cancellationToken = default);
 
 		Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, CancellationToken, Task<IEnumerable<Script>>> getSelfSpendDestinations, CancellationToken cancellationToken);
+
+		public Task<bool> StartCoinJoinAsync(IEnumerable<ISpendableSmartCoin> coins, Func<int, IEnumerable<Script>> getSelfSpendDestinations, CancellationToken cancellationToken = default)
+		{
+			Task<IEnumerable<Script>> GetAsync(int i, CancellationToken _) => Task.FromResult(getSelfSpendDestinations(i));
+			return StartCoinJoinAsync(coins, GetAsync, cancellationToken);
+		}
 	}
 }
