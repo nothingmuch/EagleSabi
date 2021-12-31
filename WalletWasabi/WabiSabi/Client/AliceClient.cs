@@ -134,9 +134,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
-			Coin coin = SpendableCoin.Coin;
-			long[] amountsToRequest = { coin.EffectiveValue(FeeRate).Satoshi };
-			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - coin.ScriptPubKey.EstimateInputVsize() };
+			long[] amountsToRequest = { SpendableCoin.EffectiveValue(FeeRate).Satoshi };
+			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - SpendableCoin.ScriptPubKey.EstimateInputVsize() };
 
 			do
 			{

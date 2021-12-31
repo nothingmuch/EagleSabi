@@ -24,8 +24,6 @@ namespace WalletWasabi.WabiSabi.Client
 
 		// TODO provide minimal interfaces
 		public Coin Coin => SmartCoin.Coin;
-		public TxOut TxOut => SmartCoin.Coin.TxOut;
-		public OutPoint Outpoint => SmartCoin.Coin.Outpoint;
 		public int AnonymitySetSizeEstimate => SmartCoin.HdPubKey.AnonymitySet;
 
 		public bool CoinJoinInProgress { get => SmartCoin.CoinJoinInProgress; set => SmartCoin.CoinJoinInProgress = value; }

@@ -280,3 +280,6 @@ lcov.info
 
 # This file is created by an F# VS Code plugin
 .ionide/symbolCache.db
+
+# Generated
+*.capnp.cs
