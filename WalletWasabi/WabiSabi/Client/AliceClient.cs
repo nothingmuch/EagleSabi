@@ -36,7 +36,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Guid AliceId { get; }
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
-		public ISpendableSmartCoin SpendableCoin { get; }
+		public ISpendableSmartCoin SpendableCoin { get; } // TODO dispose
 		private FeeRate FeeRate { get; }
 		public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 		public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
@@ -90,16 +90,15 @@ namespace WalletWasabi.WabiSabi.Client
 		private static async Task<AliceClient> RegisterInputAsync(RoundState roundState, ArenaClient arenaClient, ISpendableSmartCoin coin, CancellationToken cancellationToken)
 		{
 			AliceClient? aliceClient;
-			Coin coinData = await coin.GetCoinAsync(cancellationToken).ConfigureAwait(false);
 			try
 			{
 				var commitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id);
 				var ownershipProof = await coin.GenerateOwnershipProofAsync(commitmentData, cancellationToken).ConfigureAwait(false);
-				var response = await arenaClient.RegisterInputAsync(roundState.Id, coinData.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
+				var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
 				aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 				await coin.CoinJoinStartedAsync(cancellationToken).ConfigureAwait(false);
 
-				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coinData.Outpoint}.");
+				Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Coin.Outpoint}.");
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -109,21 +108,21 @@ namespace WalletWasabi.WabiSabi.Client
 					{
 						case WabiSabiProtocolErrorCode.InputSpent:
 							await coin.ReportedSpentAccordingToBackendAsync(cancellationToken).ConfigureAwait(false);
-							Logger.LogInfo($"{coinData.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+							Logger.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 							break;
 
 						case WabiSabiProtocolErrorCode.InputBanned:
 							await coin.BannedAsync(DateTimeOffset.UtcNow.AddDays(1), cancellationToken).ConfigureAwait(false); // FIXME why isn't this in the error?
-							Logger.LogInfo($"{coinData.Outpoint} is banned.");
+							Logger.LogInfo($"{coin.Coin.Outpoint} is banned.");
 							break;
 
 						case WabiSabiProtocolErrorCode.InputNotWhitelisted:
 							// WTF does this have to do with whitelisting? coin.SpentAccordingToBackend = false;
-							Logger.LogWarning($"{coinData.Outpoint} cannot be registered in the blame round.");
+							Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
 							break;
 
 						case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-							Logger.LogInfo($"{coinData.Outpoint} was already registered.");
+							Logger.LogInfo($"{coin.Coin.Outpoint} was already registered.");
 							break;
 					}
 				}
@@ -135,7 +134,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
 		{
-			Coin coin = await SpendableCoin.GetCoinAsync(cancellationToken).ConfigureAwait(false);
+			Coin coin = SpendableCoin.Coin;
 			long[] amountsToRequest = { coin.EffectiveValue(FeeRate).Satoshi };
 			long[] vsizesToRequest = { MaxVsizeAllocationPerAlice - coin.ScriptPubKey.EstimateInputVsize() };
 
@@ -163,7 +162,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<bool> TryConfirmConnectionAsync(IEnumerable<long> amountsToRequest, IEnumerable<long> vsizesToRequest, CancellationToken cancellationToken)
 		{
-			Coin coin = await SpendableCoin.GetCoinAsync(cancellationToken).ConfigureAwait(false);
+			Coin coin = SpendableCoin.Coin;
 			var totalFeeToPay = FeeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
 			var totalAmount = coin.Amount;
 			var effectiveAmount = totalAmount - totalFeeToPay;
@@ -195,7 +194,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task TryToUnregisterAlicesAsync(CancellationToken cancellationToken)
 		{
-			var coin = await SpendableCoin.GetCoinAsync(cancellationToken);
+			var coin = SpendableCoin.Coin;
 			try
 			{
 				await RemoveInputAsync(cancellationToken).ConfigureAwait(false);

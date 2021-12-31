@@ -23,7 +23,7 @@ namespace WalletWasabi.WabiSabi.Client
 					commitmentData);
 
 		// TODO provide minimal interfaces
-		public Task<Coin> GetCoinAsync(CancellationToken cancellationToken_ = default) => Task.FromResult(SmartCoin.Coin);
+		public Coin Coin => SmartCoin.Coin;
 		public TxOut TxOut => SmartCoin.Coin.TxOut;
 		public OutPoint Outpoint => SmartCoin.Coin.Outpoint;
 		public int AnonymitySetSizeEstimate => SmartCoin.HdPubKey.AnonymitySet;

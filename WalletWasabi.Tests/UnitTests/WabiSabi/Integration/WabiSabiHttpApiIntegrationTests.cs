@@ -65,22 +65,23 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			using var server = new TcpRpcServer();
 			server.AddBuffering();
-			using var service = new WalletWasabi.WabiSabi.Capnp.SpendableSmartCoinService(coin);
+			using var service = new WalletWasabi.WabiSabi.Capnp.SpendableCoinService(coin);
 			server.Main = service;
 			server.StartAccepting(IPAddress.Any, 5555);
 
 			using var client = new TcpRpcClient();
 			client.AddBuffering();
 			client.Connect("localhost", 5555);
-			var main = client.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin>();
-			using var rpcClient = new WalletWasabi.WabiSabi.Capnp.SpendableSmartCoinClient(main);
-
-			Assert.Equal((await coin.GetCoinAsync()).TxOut.ToString(), (await rpcClient.GetCoinAsync()).TxOut.ToString());
+			using var main = client.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendCapability>();
 
 			var tx = Transaction.Create(Network.Main);
-			tx.Inputs.Add((await rpcClient.GetCoinAsync()).Outpoint);
+			tx.Inputs.Add(coin.Coin.Outpoint);
 
-			Assert.Equal(await coin.SignAsync(tx), await rpcClient.SignAsync(tx));
+			var (index1, witness1) = await coin.SignAsync(tx);
+			var (index2, witness2) = await main.Sign(new() { Data = tx.ToBytes() });
+
+			Assert.Equal(index1, index2);
+			Assert.Equal(witness1.Pushes, witness2.Pushes);
 		}
 
 		[Fact]
@@ -107,14 +108,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			using var rpcClient = new WalletWasabi.WabiSabi.Capnp.WalletClient(main);
 
-			var rpcCoins = await rpcClient.GetCoinsAsync();
+			var rpcCoins = await rpcClient.GetAvailableCoinsAsync();
 
 			using var rpcCoin = rpcCoins.Single();
 
-			Assert.Equal((await coin.GetCoinAsync()).TxOut.ToString(), (await rpcCoin.GetCoinAsync()).TxOut.ToString());
+			Assert.Equal(coin.Coin.TxOut.ToString(), rpcCoin.Coin.TxOut.ToString());
 
 			var tx = Transaction.Create(Network.Main);
-			tx.Inputs.Add((await rpcCoin.GetCoinAsync()).Outpoint);
+			tx.Inputs.Add(rpcCoin.Coin.Outpoint);
 
 			Assert.Equal(await coin.SignAsync(tx), await rpcCoin.SignAsync(tx));
 		}
@@ -140,7 +141,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
 				.Take(inputCount)
-				.Select((x, i) => SpendableSmartCoin.Create(BitcoinFactory.CreateSmartCoin(x, amounts[i]), keyManager))
+				.Select((x, i) => SpendableSmartCoin.Create(BitcoinFactory.CreateSmartCoin(x, amounts[i]), keyManager) as ISpendableSmartCoin)
 				// .Select(c => new WalletWasabi.WabiSabi.Capnp.SpendableSmartCoinService(c)) // FIXME dispose
 				// .Select(c => new WalletWasabi.WabiSabi.Capnp.SpendableSmartCoinClient(c)) // FIXME dispose
 				.ToImmutableArray();
@@ -158,7 +159,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						Confirmations = 101,
 						IsCoinBase = false,
 						ScriptPubKeyType = "witness_v0_keyhash",
-						TxOut = coins.Single(x => x.Outpoint.Hash == txId && x.Outpoint.N == idx).TxOut
+						TxOut = coins.Single(x => x.Coin.Outpoint.Hash == txId && x.Coin.Outpoint.N == idx).Coin.TxOut
 					};
 
 					// Make the coordinator believe that the transaction is being
@@ -192,33 +193,32 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			var coinJoinClient = new CoinJoinClient(mockHttpClientFactory.Object, roundStateUpdater) as ICoinJoinClient;
+			using var coinJoinRpcServer = new TcpRpcServer();
+			coinJoinRpcServer.AddBuffering();
+			using var coinJoinerService = new WalletWasabi.WabiSabi.Capnp.CoinJoinerService(new CoinJoinClient(mockHttpClientFactory.Object, roundStateUpdater));
+			coinJoinRpcServer.Main = coinJoinerService;
+			coinJoinRpcServer.StartAccepting(IPAddress.Any, 5555);
 
-			using var server = new TcpRpcServer();
-			server.AddBuffering();
-			// using var service = new WalletWasabi.WabiSabi.Capnp.WalletService(coins, (i, _) => Task.FromResult(keyManager.GetSelfSpendScripts(i)));
-			//using var service = new WalletWasabi.WabiSabi.Capnp.CoinJoinerService(coinJoinClient);
-			using var service = new WalletWasabi.WabiSabi.Capnp.SpendableSmartCoinService(coins.Single());
-			server.Main = service;
-			server.StartAccepting(IPAddress.Any, 5555);
+			using var coinJoinerRpcClient = new TcpRpcClient();
+			coinJoinerRpcClient.AddBuffering();
+			coinJoinerRpcClient.Connect("localhost", 5555);
+			var main = coinJoinerRpcClient.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoiner>();
+			using var remoteCoinJoiner = new WalletWasabi.WabiSabi.Capnp.CoinJoinerClient(main);
 
-			using var client = new TcpRpcClient();
-			client.AddBuffering();
-			client.Connect("localhost", 5555);
-			//var main = client.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoiner>();
-			//using var rpcClient = new WalletWasabi.WabiSabi.Capnp.CoinJoinerClient(main);
-			//coinJoinClient = rpcClient;
+			using var walletServer = new TcpRpcServer();
+			walletServer.AddBuffering();
+			using var walletService = new WalletWasabi.WabiSabi.Capnp.WalletService(coins, (i, _) => Task.FromResult(keyManager.GetSelfSpendScripts(i)));
+			walletServer.Main = walletService;
+			walletServer.StartAccepting(IPAddress.Any, 5556);
 
-			var main = client.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin>();
-			using var remoteCoin = new WalletWasabi.WabiSabi.Capnp.SpendableSmartCoinClient(main);
-			var icoins = ImmutableArray.Create(remoteCoin as ISpendableSmartCoin);
+			using var walletClient = new TcpRpcClient();
+			walletClient.AddBuffering();
+			walletClient.Connect("localhost", 5556);
+			using var remoteWallet = new WalletWasabi.WabiSabi.Capnp.WalletClient(walletClient.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.IWallet>());
+			var remoteCoins = (await remoteWallet.GetAvailableCoinsAsync()).ToImmutableArray();
 
-			//var main = client.GetMain<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.IWallet>();
-			//using var rpcClient = new WalletWasabi.WabiSabi.Capnp.WalletClient(main);
-			//var icoins = (await rpcClient.GetCoinsAsync()).ToImmutableArray();
-
-			// Run the coinjoin client task.
-			Assert.True(await coinJoinClient.StartCoinJoinAsync(icoins, (i, _) => Task.FromResult(keyManager.GetSelfSpendScripts(i)), cts.Token));
+			// Run the coinjoin client task from, proxying remote coins to the remote coinjoiner.
+			Assert.True(await remoteCoinJoiner.StartCoinJoinAsync(remoteCoins, (i, _) => Task.FromResult(keyManager.GetSelfSpendScripts(i)), cts.Token));
 
 			var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 			Assert.NotNull(broadcastedTx);

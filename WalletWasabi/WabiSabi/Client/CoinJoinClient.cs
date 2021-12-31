@@ -100,9 +100,7 @@ namespace WalletWasabi.WabiSabi.Client
 				InCriticalCoinJoinState = true;
 
 				// Calculate outputs values
-				var registeredCoinsTasks = registeredAliceClients.Select(async x => await x.SpendableCoin.GetCoinAsync().ConfigureAwait(false)).ToArray();
-				Task.WaitAll(registeredCoinsTasks, cancellationToken);
-				var registeredCoins = registeredCoinsTasks.Select(t => t.Result);
+				var registeredCoins = registeredAliceClients.Select(x => x.SpendableCoin.Coin).ToImmutableArray();
 				var availableVsize = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials).Sum(x => x.Value);
 
 				// Calculate outputs values
@@ -168,7 +166,6 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			async Task<AliceClient?> RegisterInputAsync(ISpendableSmartCoin spendableCoin, CancellationToken cancellationToken)
 			{
-				using var coin = spendableCoin;
 				try
 				{
 					// Alice client requests are inherently linkable to each other, so the circuit can be reused
@@ -179,7 +176,7 @@ namespace WalletWasabi.WabiSabi.Client
 						roundState.CreateVsizeCredentialClient(SecureRandom),
 						arenaRequestHandler);
 
-					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, coin, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
+					return await AliceClient.CreateRegisterAndConfirmInputAsync(roundState, aliceArenaClient, spendableCoin, RoundStatusUpdater, cancellationToken).ConfigureAwait(false);
 				}
 				catch (HttpRequestException)
 				{

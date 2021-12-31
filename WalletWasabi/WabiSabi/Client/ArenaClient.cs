@@ -187,7 +187,7 @@ namespace WalletWasabi.WabiSabi.Client
 		internal Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
 			=> SignTransactionAsync(roundId, new SpendableCoin(coin, bitcoinSecret), unsignedCoinJoin, cancellationToken);
 
-		public async Task SignTransactionAsync(uint256 roundId, IAsyncCoinWithSignCapability coin, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
+		public async Task SignTransactionAsync(uint256 roundId, ISignCapability coin, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
 		{
 			if (unsignedCoinJoin.Inputs.Count == 0)
 			{

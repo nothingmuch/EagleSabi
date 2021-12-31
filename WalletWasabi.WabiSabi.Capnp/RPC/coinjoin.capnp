@@ -17,11 +17,9 @@ struct RawTransaction {
 	data @0 :Data;
 }
 
-# TODO front load coin data: struct SpendableCoin { coin :Coin; spendCapability interface { ... } }
-interface SpendableCoin {
-	coin @0 () -> (coin :Bitcoin.Coin);
-	proveOwnership @1 (commitmentData :CommitmentData) -> (ownershipProof :OwnershipProof);
-	sign @2 (unsignedTransaction :RawTransaction) -> (index :UInt32, witness :Bitcoin.WitScript);
+interface SpendCapability {
+	proveOwnership @0 (commitmentData :CommitmentData) -> (ownershipProof :OwnershipProof);
+	sign @1 (unsignedTransaction :RawTransaction) -> (index :UInt32, witness :Bitcoin.WitScript); # TODO error? SignableTransaction?
 }
 
 struct DateTimeOffset {
@@ -41,18 +39,19 @@ struct CoinStatus {
 	anonymitySetSizeEstimate @2 :Int32;
 }
 
-# spend capability implies exclusive control, disposal = releasing the lock
-# TODO front load coin data: struct SpendableSmartCoin { coin :Coin; status :CoinStatus; spendCapability interface { ... } }
-interface SpendableSmartCoin extends(SpendableCoin, CoinJoinEvents) {
-	getStatus @0 () -> (status :CoinStatus);
+# spend capability implies exclusive control, release by disposing
+struct SpendableCoin {
+	coin @0 :Bitcoin.Coin;
+	spendCapability @1 :SpendCapability;
+	status @2 :CoinStatus; # TODO
+	events @3 :CoinJoinEvents;
 }
 
 interface Wallet {
-	coins @0 () -> (coins :List(SpendableSmartCoin));
+	getAvailableCoins @0 () -> (coins :List(SpendableCoin));
 	generateSelfSpendScripts @1 (count :Int32) -> (scriptPubKeys :List(Bitcoin.Script));
 }
 
 interface CoinJoiner {
 	startCoinJoin @0 (wallet :Wallet) -> (succeeded :Bool); # TODO return tx or error
-	inCriticalCoinJoinState @1 () -> (inCritical :Bool); # TODO replace with events
 }

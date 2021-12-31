@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public record SpendableCoin(Coin Coin, BitcoinSecret BitcoinSecret) : IAsyncCoinWithSignCapability
+	public record SpendableCoin(Coin Coin, BitcoinSecret BitcoinSecret) : ISignCapability
 	{
-		public Task<Coin> GetCoinAsync(CancellationToken _) => Task.FromResult(Coin);
-
 		public (uint, WitScript) Sign(Transaction transaction)
 		{
 			var clone = transaction.Clone();

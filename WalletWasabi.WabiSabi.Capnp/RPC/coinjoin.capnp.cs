@@ -188,91 +188,61 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
         }
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd12425dac9a33ac2UL), Proxy(typeof(SpendableCoin_Proxy)), Skeleton(typeof(SpendableCoin_Skeleton))]
-    public interface ISpendableCoin : IDisposable
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xf1b7308c2ba6dc91UL), Proxy(typeof(SpendCapability_Proxy)), Skeleton(typeof(SpendCapability_Skeleton))]
+    public interface ISpendCapability : IDisposable
     {
-        Task<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin> Coin(CancellationToken cancellationToken_ = default);
         Task<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.OwnershipProof> ProveOwnership(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CommitmentData commitmentData, CancellationToken cancellationToken_ = default);
         Task<(uint, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.WitScript)> Sign(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.RawTransaction unsignedTransaction, CancellationToken cancellationToken_ = default);
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd12425dac9a33ac2UL)]
-    public class SpendableCoin_Proxy : Proxy, ISpendableCoin
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xf1b7308c2ba6dc91UL)]
+    public class SpendCapability_Proxy : Proxy, ISpendCapability
     {
-        public async Task<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin> Coin(CancellationToken cancellationToken_ = default)
-        {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Coin.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Coin()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(15070211874704538306UL, 0, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Coin>(d_);
-                return (r_.Coin);
-            }
-        }
-
         public async Task<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.OwnershipProof> ProveOwnership(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CommitmentData commitmentData, CancellationToken cancellationToken_ = default)
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_ProveOwnership.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_ProveOwnership()
+            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Params_ProveOwnership.WRITER>();
+            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Params_ProveOwnership()
             {CommitmentData = commitmentData};
             arg_?.serialize(in_);
-            using (var d_ = await Call(15070211874704538306UL, 1, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
+            using (var d_ = await Call(17417443462464593041UL, 0, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
             {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_ProveOwnership>(d_);
+                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Result_ProveOwnership>(d_);
                 return (r_.OwnershipProof);
             }
         }
 
         public async Task<(uint, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.WitScript)> Sign(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.RawTransaction unsignedTransaction, CancellationToken cancellationToken_ = default)
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Sign.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Sign()
+            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Params_Sign.WRITER>();
+            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Params_Sign()
             {UnsignedTransaction = unsignedTransaction};
             arg_?.serialize(in_);
-            using (var d_ = await Call(15070211874704538306UL, 2, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
+            using (var d_ = await Call(17417443462464593041UL, 1, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
             {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Sign>(d_);
+                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Result_Sign>(d_);
                 return (r_.Index, r_.Witness);
             }
         }
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd12425dac9a33ac2UL)]
-    public class SpendableCoin_Skeleton : Skeleton<ISpendableCoin>
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xf1b7308c2ba6dc91UL)]
+    public class SpendCapability_Skeleton : Skeleton<ISpendCapability>
     {
-        public SpendableCoin_Skeleton()
+        public SpendCapability_Skeleton()
         {
-            SetMethodTable(Coin, ProveOwnership, Sign);
+            SetMethodTable(ProveOwnership, Sign);
         }
 
-        public override ulong InterfaceId => 15070211874704538306UL;
-        Task<AnswerOrCounterquestion> Coin(DeserializerState d_, CancellationToken cancellationToken_)
-        {
-            using (d_)
-            {
-                return Impatient.MaybeTailCall(Impl.Coin(cancellationToken_), coin =>
-                {
-                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Coin.WRITER>();
-                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Coin{Coin = coin};
-                    r_.serialize(s_);
-                    return s_;
-                }
-
-                );
-            }
-        }
-
+        public override ulong InterfaceId => 17417443462464593041UL;
         Task<AnswerOrCounterquestion> ProveOwnership(DeserializerState d_, CancellationToken cancellationToken_)
         {
             using (d_)
             {
-                var in_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_ProveOwnership>(d_);
+                var in_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Params_ProveOwnership>(d_);
                 return Impatient.MaybeTailCall(Impl.ProveOwnership(in_.CommitmentData, cancellationToken_), ownershipProof =>
                 {
-                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_ProveOwnership.WRITER>();
-                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_ProveOwnership{OwnershipProof = ownershipProof};
+                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Result_ProveOwnership.WRITER>();
+                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Result_ProveOwnership{OwnershipProof = ownershipProof};
                     r_.serialize(s_);
                     return s_;
                 }
@@ -285,11 +255,11 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
         {
             using (d_)
             {
-                var in_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Sign>(d_);
+                var in_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Params_Sign>(d_);
                 return Impatient.MaybeTailCall(Impl.Sign(in_.UnsignedTransaction, cancellationToken_), (index, witness) =>
                 {
-                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Sign.WRITER>();
-                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Sign{Index = index, Witness = witness};
+                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Result_Sign.WRITER>();
+                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendCapability.Result_Sign{Index = index, Witness = witness};
                     r_.serialize(s_);
                     return s_;
                 }
@@ -299,118 +269,12 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
         }
     }
 
-    public static class SpendableCoin
+    public static class SpendCapability
     {
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xce17d91bfca7720fUL)]
-        public class Params_Coin : ICapnpSerializable
-        {
-            public const UInt64 typeId = 0xce17d91bfca7720fUL;
-            void ICapnpSerializable.Deserialize(DeserializerState arg_)
-            {
-                var reader = READER.create(arg_);
-                applyDefaults();
-            }
-
-            public void serialize(WRITER writer)
-            {
-            }
-
-            void ICapnpSerializable.Serialize(SerializerState arg_)
-            {
-                serialize(arg_.Rewrap<WRITER>());
-            }
-
-            public void applyDefaults()
-            {
-            }
-
-            public struct READER
-            {
-                readonly DeserializerState ctx;
-                public READER(DeserializerState ctx)
-                {
-                    this.ctx = ctx;
-                }
-
-                public static READER create(DeserializerState ctx) => new READER(ctx);
-                public static implicit operator DeserializerState(READER reader) => reader.ctx;
-                public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            }
-
-            public class WRITER : SerializerState
-            {
-                public WRITER()
-                {
-                    this.SetStruct(0, 0);
-                }
-            }
-        }
-
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xce34df608f01b358UL)]
-        public class Result_Coin : ICapnpSerializable
-        {
-            public const UInt64 typeId = 0xce34df608f01b358UL;
-            void ICapnpSerializable.Deserialize(DeserializerState arg_)
-            {
-                var reader = READER.create(arg_);
-                Coin = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin>(reader.Coin);
-                applyDefaults();
-            }
-
-            public void serialize(WRITER writer)
-            {
-                Coin?.serialize(writer.Coin);
-            }
-
-            void ICapnpSerializable.Serialize(SerializerState arg_)
-            {
-                serialize(arg_.Rewrap<WRITER>());
-            }
-
-            public void applyDefaults()
-            {
-            }
-
-            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin Coin
-            {
-                get;
-                set;
-            }
-
-            public struct READER
-            {
-                readonly DeserializerState ctx;
-                public READER(DeserializerState ctx)
-                {
-                    this.ctx = ctx;
-                }
-
-                public static READER create(DeserializerState ctx) => new READER(ctx);
-                public static implicit operator DeserializerState(READER reader) => reader.ctx;
-                public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-                public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.READER Coin => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.READER.create);
-                public bool HasCoin => ctx.IsStructFieldNonNull(0);
-            }
-
-            public class WRITER : SerializerState
-            {
-                public WRITER()
-                {
-                    this.SetStruct(0, 1);
-                }
-
-                public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.WRITER Coin
-                {
-                    get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.WRITER>(0);
-                    set => Link(0, value);
-                }
-            }
-        }
-
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xa071cde82530e210UL)]
+        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xbf5238ce48e84a6dUL)]
         public class Params_ProveOwnership : ICapnpSerializable
         {
-            public const UInt64 typeId = 0xa071cde82530e210UL;
+            public const UInt64 typeId = 0xbf5238ce48e84a6dUL;
             void ICapnpSerializable.Deserialize(DeserializerState arg_)
             {
                 var reader = READER.create(arg_);
@@ -468,10 +332,10 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
             }
         }
 
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc33d14bc6de8a85cUL)]
+        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xf42b097d1392602bUL)]
         public class Result_ProveOwnership : ICapnpSerializable
         {
-            public const UInt64 typeId = 0xc33d14bc6de8a85cUL;
+            public const UInt64 typeId = 0xf42b097d1392602bUL;
             void ICapnpSerializable.Deserialize(DeserializerState arg_)
             {
                 var reader = READER.create(arg_);
@@ -529,10 +393,10 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
             }
         }
 
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xe522529ac314db45UL)]
+        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0x94d27f5cd6e0ade8UL)]
         public class Params_Sign : ICapnpSerializable
         {
-            public const UInt64 typeId = 0xe522529ac314db45UL;
+            public const UInt64 typeId = 0x94d27f5cd6e0ade8UL;
             void ICapnpSerializable.Deserialize(DeserializerState arg_)
             {
                 var reader = READER.create(arg_);
@@ -590,10 +454,10 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
             }
         }
 
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xaef6bb89c0c7e7f2UL)]
+        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc6bbbb300eec3a64UL)]
         public class Result_Sign : ICapnpSerializable
         {
-            public const UInt64 typeId = 0xaef6bb89c0c7e7f2UL;
+            public const UInt64 typeId = 0xc6bbbb300eec3a64UL;
             void ICapnpSerializable.Deserialize(DeserializerState arg_)
             {
                 var reader = READER.create(arg_);
@@ -1312,251 +1176,109 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
         }
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xeb0f2fdba3822545UL), Proxy(typeof(SpendableSmartCoin_Proxy)), Skeleton(typeof(SpendableSmartCoin_Skeleton))]
-    public interface ISpendableSmartCoin : WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableCoin, WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoinEvents
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd12425dac9a33ac2UL)]
+    public class SpendableCoin : ICapnpSerializable
     {
-        Task<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus> GetStatus(CancellationToken cancellationToken_ = default);
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xeb0f2fdba3822545UL)]
-    public class SpendableSmartCoin_Proxy : Proxy, ISpendableSmartCoin
-    {
-        public async Task<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus> GetStatus(CancellationToken cancellationToken_ = default)
+        public const UInt64 typeId = 0xd12425dac9a33ac2UL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableSmartCoin.Params_GetStatus.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableSmartCoin.Params_GetStatus()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(16937809343951283525UL, 0, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableSmartCoin.Result_GetStatus>(d_);
-                return (r_.Status);
-            }
+            var reader = READER.create(arg_);
+            Coin = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin>(reader.Coin);
+            SpendCapability = reader.SpendCapability;
+            Status = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus>(reader.Status);
+            Events = reader.Events;
+            applyDefaults();
         }
 
-        public async Task CoinJoinStarted(CancellationToken cancellationToken_ = default)
+        public void serialize(WRITER writer)
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_CoinJoinStarted.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_CoinJoinStarted()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(11142156767635009989UL, 0, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Result_CoinJoinStarted>(d_);
-                return;
-            }
+            Coin?.serialize(writer.Coin);
+            writer.SpendCapability = SpendCapability;
+            Status?.serialize(writer.Status);
+            writer.Events = Events;
         }
 
-        public async Task CoinJoinNoLongerInProgress(CancellationToken cancellationToken_ = default)
+        void ICapnpSerializable.Serialize(SerializerState arg_)
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_CoinJoinNoLongerInProgress.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_CoinJoinNoLongerInProgress()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(11142156767635009989UL, 1, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Result_CoinJoinNoLongerInProgress>(d_);
-                return;
-            }
+            serialize(arg_.Rewrap<WRITER>());
         }
 
-        public async Task ReportedSpentAccordingToBackend(CancellationToken cancellationToken_ = default)
+        public void applyDefaults()
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_ReportedSpentAccordingToBackend.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_ReportedSpentAccordingToBackend()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(11142156767635009989UL, 2, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Result_ReportedSpentAccordingToBackend>(d_);
-                return;
-            }
         }
 
-        public async Task Banned(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.DateTimeOffset until, CancellationToken cancellationToken_ = default)
+        public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin Coin
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_Banned.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Params_Banned()
-            {Until = until};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(11142156767635009989UL, 3, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoinEvents.Result_Banned>(d_);
-                return;
-            }
+            get;
+            set;
         }
 
-        public async Task<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin> Coin(CancellationToken cancellationToken_ = default)
+        public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendCapability SpendCapability
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Coin.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Coin()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(15070211874704538306UL, 0, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Coin>(d_);
-                return (r_.Coin);
-            }
+            get;
+            set;
         }
 
-        public async Task<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.OwnershipProof> ProveOwnership(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CommitmentData commitmentData, CancellationToken cancellationToken_ = default)
+        public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus Status
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_ProveOwnership.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_ProveOwnership()
-            {CommitmentData = commitmentData};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(15070211874704538306UL, 1, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_ProveOwnership>(d_);
-                return (r_.OwnershipProof);
-            }
+            get;
+            set;
         }
 
-        public async Task<(uint, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.WitScript)> Sign(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.RawTransaction unsignedTransaction, CancellationToken cancellationToken_ = default)
+        public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoinEvents Events
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Sign.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Params_Sign()
-            {UnsignedTransaction = unsignedTransaction};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(15070211874704538306UL, 2, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.Result_Sign>(d_);
-                return (r_.Index, r_.Witness);
-            }
-        }
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xeb0f2fdba3822545UL)]
-    public class SpendableSmartCoin_Skeleton : Skeleton<ISpendableSmartCoin>
-    {
-        public SpendableSmartCoin_Skeleton()
-        {
-            SetMethodTable(GetStatus);
+            get;
+            set;
         }
 
-        public override ulong InterfaceId => 16937809343951283525UL;
-        Task<AnswerOrCounterquestion> GetStatus(DeserializerState d_, CancellationToken cancellationToken_)
+        public struct READER
         {
-            using (d_)
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
             {
-                return Impatient.MaybeTailCall(Impl.GetStatus(cancellationToken_), status =>
-                {
-                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableSmartCoin.Result_GetStatus.WRITER>();
-                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableSmartCoin.Result_GetStatus{Status = status};
-                    r_.serialize(s_);
-                    return s_;
-                }
-
-                );
-            }
-        }
-    }
-
-    public static class SpendableSmartCoin
-    {
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc4c7548bc28165d6UL)]
-        public class Params_GetStatus : ICapnpSerializable
-        {
-            public const UInt64 typeId = 0xc4c7548bc28165d6UL;
-            void ICapnpSerializable.Deserialize(DeserializerState arg_)
-            {
-                var reader = READER.create(arg_);
-                applyDefaults();
+                this.ctx = ctx;
             }
 
-            public void serialize(WRITER writer)
-            {
-            }
-
-            void ICapnpSerializable.Serialize(SerializerState arg_)
-            {
-                serialize(arg_.Rewrap<WRITER>());
-            }
-
-            public void applyDefaults()
-            {
-            }
-
-            public struct READER
-            {
-                readonly DeserializerState ctx;
-                public READER(DeserializerState ctx)
-                {
-                    this.ctx = ctx;
-                }
-
-                public static READER create(DeserializerState ctx) => new READER(ctx);
-                public static implicit operator DeserializerState(READER reader) => reader.ctx;
-                public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            }
-
-            public class WRITER : SerializerState
-            {
-                public WRITER()
-                {
-                    this.SetStruct(0, 0);
-                }
-            }
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.READER Coin => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.READER.create);
+            public bool HasCoin => ctx.IsStructFieldNonNull(0);
+            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendCapability SpendCapability => ctx.ReadCap<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendCapability>(1);
+            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.READER Status => ctx.ReadStruct(2, WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.READER.create);
+            public bool HasStatus => ctx.IsStructFieldNonNull(2);
+            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoinEvents Events => ctx.ReadCap<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoinEvents>(3);
         }
 
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xb3d575606afe841fUL)]
-        public class Result_GetStatus : ICapnpSerializable
+        public class WRITER : SerializerState
         {
-            public const UInt64 typeId = 0xb3d575606afe841fUL;
-            void ICapnpSerializable.Deserialize(DeserializerState arg_)
+            public WRITER()
             {
-                var reader = READER.create(arg_);
-                Status = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus>(reader.Status);
-                applyDefaults();
+                this.SetStruct(0, 4);
             }
 
-            public void serialize(WRITER writer)
+            public WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.WRITER Coin
             {
-                Status?.serialize(writer.Status);
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Coin.WRITER>(0);
+                set => Link(0, value);
             }
 
-            void ICapnpSerializable.Serialize(SerializerState arg_)
+            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendCapability SpendCapability
             {
-                serialize(arg_.Rewrap<WRITER>());
+                get => ReadCap<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendCapability>(1);
+                set => LinkObject(1, value);
             }
 
-            public void applyDefaults()
+            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.WRITER Status
             {
+                get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.WRITER>(2);
+                set => Link(2, value);
             }
 
-            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus Status
+            public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoinEvents Events
             {
-                get;
-                set;
-            }
-
-            public struct READER
-            {
-                readonly DeserializerState ctx;
-                public READER(DeserializerState ctx)
-                {
-                    this.ctx = ctx;
-                }
-
-                public static READER create(DeserializerState ctx) => new READER(ctx);
-                public static implicit operator DeserializerState(READER reader) => reader.ctx;
-                public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-                public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.READER Status => ctx.ReadStruct(0, WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.READER.create);
-                public bool HasStatus => ctx.IsStructFieldNonNull(0);
-            }
-
-            public class WRITER : SerializerState
-            {
-                public WRITER()
-                {
-                    this.SetStruct(0, 1);
-                }
-
-                public WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.WRITER Status
-                {
-                    get => BuildPointer<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinStatus.WRITER>(0);
-                    set => Link(0, value);
-                }
+                get => ReadCap<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ICoinJoinEvents>(3);
+                set => LinkObject(3, value);
             }
         }
     }
@@ -1564,24 +1286,24 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xee0c45dd09eb9d61UL), Proxy(typeof(Wallet_Proxy)), Skeleton(typeof(Wallet_Skeleton))]
     public interface IWallet : IDisposable
     {
-        Task<IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin>> Coins(CancellationToken cancellationToken_ = default);
+        Task<IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin>> GetAvailableCoins(CancellationToken cancellationToken_ = default);
         Task<IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.Bitcoin.Script>> GenerateSelfSpendScripts(int count, CancellationToken cancellationToken_ = default);
     }
 
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xee0c45dd09eb9d61UL)]
     public class Wallet_Proxy : Proxy, IWallet
     {
-        public Task<IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin>> Coins(CancellationToken cancellationToken_ = default)
+        public Task<IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin>> GetAvailableCoins(CancellationToken cancellationToken_ = default)
         {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Params_Coins.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Params_Coins()
+            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Params_GetAvailableCoins.WRITER>();
+            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Params_GetAvailableCoins()
             {};
             arg_?.serialize(in_);
             return Impatient.MakePipelineAware(Call(17153161896403901793UL, 0, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_), d_ =>
             {
                 using (d_)
                 {
-                    var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Result_Coins>(d_);
+                    var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Result_GetAvailableCoins>(d_);
                     return (r_.Coins);
                 }
             }
@@ -1608,18 +1330,18 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
     {
         public Wallet_Skeleton()
         {
-            SetMethodTable(Coins, GenerateSelfSpendScripts);
+            SetMethodTable(GetAvailableCoins, GenerateSelfSpendScripts);
         }
 
         public override ulong InterfaceId => 17153161896403901793UL;
-        Task<AnswerOrCounterquestion> Coins(DeserializerState d_, CancellationToken cancellationToken_)
+        Task<AnswerOrCounterquestion> GetAvailableCoins(DeserializerState d_, CancellationToken cancellationToken_)
         {
             using (d_)
             {
-                return Impatient.MaybeTailCall(Impl.Coins(cancellationToken_), coins =>
+                return Impatient.MaybeTailCall(Impl.GetAvailableCoins(cancellationToken_), coins =>
                 {
-                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Result_Coins.WRITER>();
-                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Result_Coins{Coins = coins};
+                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Result_GetAvailableCoins.WRITER>();
+                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.Wallet.Result_GetAvailableCoins{Coins = coins};
                     r_.serialize(s_);
                     return s_;
                 }
@@ -1649,7 +1371,7 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
     public static class Wallet
     {
         [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xe95c00201539d9bdUL)]
-        public class Params_Coins : ICapnpSerializable
+        public class Params_GetAvailableCoins : ICapnpSerializable
         {
             public const UInt64 typeId = 0xe95c00201539d9bdUL;
             void ICapnpSerializable.Deserialize(DeserializerState arg_)
@@ -1694,19 +1416,19 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
         }
 
         [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xe384f3d2a9715a65UL)]
-        public class Result_Coins : ICapnpSerializable
+        public class Result_GetAvailableCoins : ICapnpSerializable
         {
             public const UInt64 typeId = 0xe384f3d2a9715a65UL;
             void ICapnpSerializable.Deserialize(DeserializerState arg_)
             {
                 var reader = READER.create(arg_);
-                Coins = reader.Coins;
+                Coins = reader.Coins?.ToReadOnlyList(_ => CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin>(_));
                 applyDefaults();
             }
 
             public void serialize(WRITER writer)
             {
-                writer.Coins.Init(Coins);
+                writer.Coins.Init(Coins, (_s1, _v1) => _v1?.serialize(_s1));
             }
 
             void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -1718,7 +1440,7 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
             {
             }
 
-            public IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin> Coins
+            public IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin> Coins
             {
                 get;
                 set;
@@ -1735,7 +1457,7 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
                 public static READER create(DeserializerState ctx) => new READER(ctx);
                 public static implicit operator DeserializerState(READER reader) => reader.ctx;
                 public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-                public IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin> Coins => ctx.ReadCapList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin>(0);
+                public IReadOnlyList<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.READER> Coins => ctx.ReadList(0).Cast(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.READER.create);
                 public bool HasCoins => ctx.IsStructFieldNonNull(0);
             }
 
@@ -1746,9 +1468,9 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
                     this.SetStruct(0, 1);
                 }
 
-                public ListOfCapsSerializer<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin> Coins
+                public ListOfStructsSerializer<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.WRITER> Coins
                 {
-                    get => BuildPointer<ListOfCapsSerializer<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.ISpendableSmartCoin>>(0);
+                    get => BuildPointer<ListOfStructsSerializer<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.SpendableCoin.WRITER>>(0);
                     set => Link(0, value);
                 }
             }
@@ -1880,7 +1602,6 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
     public interface ICoinJoiner : IDisposable
     {
         Task<bool> StartCoinJoin(WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.IWallet wallet, CancellationToken cancellationToken_ = default);
-        Task<bool> InCriticalCoinJoinState(CancellationToken cancellationToken_ = default);
     }
 
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xfe506fb309b96917UL)]
@@ -1898,19 +1619,6 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
                 return (r_.Succeeded);
             }
         }
-
-        public async Task<bool> InCriticalCoinJoinState(CancellationToken cancellationToken_ = default)
-        {
-            var in_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Params_InCriticalCoinJoinState.WRITER>();
-            var arg_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Params_InCriticalCoinJoinState()
-            {};
-            arg_?.serialize(in_);
-            using (var d_ = await Call(18325269698523523351UL, 1, in_.Rewrap<DynamicSerializerState>(), false, cancellationToken_).WhenReturned)
-            {
-                var r_ = CapnpSerializable.Create<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Result_InCriticalCoinJoinState>(d_);
-                return (r_.InCritical);
-            }
-        }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xfe506fb309b96917UL)]
@@ -1918,7 +1626,7 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
     {
         public CoinJoiner_Skeleton()
         {
-            SetMethodTable(StartCoinJoin, InCriticalCoinJoinState);
+            SetMethodTable(StartCoinJoin);
         }
 
         public override ulong InterfaceId => 18325269698523523351UL;
@@ -1931,22 +1639,6 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
                 {
                     var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Result_StartCoinJoin.WRITER>();
                     var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Result_StartCoinJoin{Succeeded = succeeded};
-                    r_.serialize(s_);
-                    return s_;
-                }
-
-                );
-            }
-        }
-
-        Task<AnswerOrCounterquestion> InCriticalCoinJoinState(DeserializerState d_, CancellationToken cancellationToken_)
-        {
-            using (d_)
-            {
-                return Impatient.MaybeTailCall(Impl.InCriticalCoinJoinState(cancellationToken_), inCritical =>
-                {
-                    var s_ = SerializerState.CreateForRpc<WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Result_InCriticalCoinJoinState.WRITER>();
-                    var r_ = new WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin.CoinJoiner.Result_InCriticalCoinJoinState{InCritical = inCritical};
                     r_.serialize(s_);
                     return s_;
                 }
@@ -2071,111 +1763,6 @@ namespace WalletWasabi.WabiSabi.Capnp.RPC.CoinJoin
                 }
 
                 public bool Succeeded
-                {
-                    get => this.ReadDataBool(0UL, false);
-                    set => this.WriteData(0UL, value, false);
-                }
-            }
-        }
-
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc71cd1a0a25c0f0eUL)]
-        public class Params_InCriticalCoinJoinState : ICapnpSerializable
-        {
-            public const UInt64 typeId = 0xc71cd1a0a25c0f0eUL;
-            void ICapnpSerializable.Deserialize(DeserializerState arg_)
-            {
-                var reader = READER.create(arg_);
-                applyDefaults();
-            }
-
-            public void serialize(WRITER writer)
-            {
-            }
-
-            void ICapnpSerializable.Serialize(SerializerState arg_)
-            {
-                serialize(arg_.Rewrap<WRITER>());
-            }
-
-            public void applyDefaults()
-            {
-            }
-
-            public struct READER
-            {
-                readonly DeserializerState ctx;
-                public READER(DeserializerState ctx)
-                {
-                    this.ctx = ctx;
-                }
-
-                public static READER create(DeserializerState ctx) => new READER(ctx);
-                public static implicit operator DeserializerState(READER reader) => reader.ctx;
-                public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            }
-
-            public class WRITER : SerializerState
-            {
-                public WRITER()
-                {
-                    this.SetStruct(0, 0);
-                }
-            }
-        }
-
-        [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xfa896ae782df16d2UL)]
-        public class Result_InCriticalCoinJoinState : ICapnpSerializable
-        {
-            public const UInt64 typeId = 0xfa896ae782df16d2UL;
-            void ICapnpSerializable.Deserialize(DeserializerState arg_)
-            {
-                var reader = READER.create(arg_);
-                InCritical = reader.InCritical;
-                applyDefaults();
-            }
-
-            public void serialize(WRITER writer)
-            {
-                writer.InCritical = InCritical;
-            }
-
-            void ICapnpSerializable.Serialize(SerializerState arg_)
-            {
-                serialize(arg_.Rewrap<WRITER>());
-            }
-
-            public void applyDefaults()
-            {
-            }
-
-            public bool InCritical
-            {
-                get;
-                set;
-            }
-
-            public struct READER
-            {
-                readonly DeserializerState ctx;
-                public READER(DeserializerState ctx)
-                {
-                    this.ctx = ctx;
-                }
-
-                public static READER create(DeserializerState ctx) => new READER(ctx);
-                public static implicit operator DeserializerState(READER reader) => reader.ctx;
-                public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-                public bool InCritical => ctx.ReadDataBool(0UL, false);
-            }
-
-            public class WRITER : SerializerState
-            {
-                public WRITER()
-                {
-                    this.SetStruct(1, 0);
-                }
-
-                public bool InCritical
                 {
                     get => this.ReadDataBool(0UL, false);
                     set => this.WriteData(0UL, value, false);
