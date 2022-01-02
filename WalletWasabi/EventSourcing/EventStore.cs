@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Exceptions;
@@ -15,19 +14,25 @@ namespace WalletWasabi.EventSourcing
 	{
 		public const int OptimisticRetryLimit = 10;
 
-		private IEventRepository EventRepository { get; }
+		#region Dependencies
 
+		private IEventRepository EventRepository { get; init; }
 		private IAggregateFactory AggregateFactory { get; init; }
 		private ICommandProcessorFactory CommandProcessorFactory { get; init; }
+		private IEventPubSub? EventPubSub { get; init; }
+
+		#endregion Dependencies
 
 		public EventStore(
 			IEventRepository eventRepository,
 			IAggregateFactory aggregateFactory,
-			ICommandProcessorFactory commandProcessorFactory)
+			ICommandProcessorFactory commandProcessorFactory,
+			IEventPubSub? eventPubSub)
 		{
 			EventRepository = eventRepository;
 			AggregateFactory = aggregateFactory;
 			CommandProcessorFactory = commandProcessorFactory;
+			EventPubSub = eventPubSub;
 		}
 
 		/// <inheritdoc />
@@ -46,12 +51,9 @@ namespace WalletWasabi.EventSourcing
 				}
 				catch (OptimisticConcurrencyException)
 				{
-					// No action
-					Conflicted();
+					await Conflicted().ConfigureAwait(false); // No action
 					if (tries <= 0)
-					{
 						throw;
-					}
 					optimisticConflict = true;
 				}
 			} while (optimisticConflict && tries > 0);
@@ -84,34 +86,30 @@ namespace WalletWasabi.EventSourcing
 			}
 
 			if (!CommandProcessorFactory.TryCreate(aggregateType, out var processor))
-			{
 				throw new AssertionFailedException($"CommandProcessor is missing for aggregate type '{aggregateType}'.");
-			}
 
 			Result? result = null;
+			List<WrappedEvent>? wrappedEvents = null;
 			try
 			{
 				result = processor.Process(command, aggregate.State);
 				if (result.Success)
 				{
-					List<WrappedEvent> wrappedEvents = new();
+					wrappedEvents = new();
 					foreach (var newEvent in result.Events)
 					{
 						sequenceId++;
-						wrappedEvents.Add(new WrappedEvent(sequenceId, newEvent, command.IdempotenceId));
+						wrappedEvents.Add(WrappedEvent.CreateDynamic(
+							aggregateType, aggregateId, sequenceId, newEvent, command.IdempotenceId));
 						aggregate.Apply(newEvent);
 					}
 
-					// No ation
-					Prepared();
+					await Prepared().ConfigureAwait(false); // No ation
 
 					await EventRepository.AppendEventsAsync(aggregateType, aggregateId, wrappedEvents)
 						.ConfigureAwait(false);
 
-					// No action
-					Appended();
-
-					return new WrappedResult(sequenceId, wrappedEvents.AsReadOnly(), aggregate.State);
+					await Appended().ConfigureAwait(false); // No action
 				}
 			}
 			catch (OptimisticConcurrencyException)
@@ -130,7 +128,17 @@ namespace WalletWasabi.EventSourcing
 					null,
 					ex);
 			}
-			if (result?.Success == false)
+			if (result?.Success == true)
+			{
+				if (EventPubSub is not null)
+					// TODO: swallow exception and/or publish asynchronously
+					await EventPubSub.PublishAllAsync().ConfigureAwait(false);
+
+				await Published().ConfigureAwait(false); // No action
+
+				return new WrappedResult(sequenceId, wrappedEvents!.AsReadOnly(), aggregate.State);
+			}
+			else if (result?.Success == false)
 			{
 				throw new CommandFailedException(
 					aggregateType,
@@ -146,9 +154,7 @@ namespace WalletWasabi.EventSourcing
 		private IAggregate ApplyEvents(string aggregateType, IReadOnlyList<WrappedEvent> events)
 		{
 			if (!AggregateFactory.TryCreate(aggregateType, out var aggregate))
-			{
 				throw new InvalidOperationException($"AggregateFactory is missing for aggregate type '{aggregateType}'.");
-			}
 
 			foreach (var wrappedEvent in events)
 			{
@@ -165,25 +171,33 @@ namespace WalletWasabi.EventSourcing
 			return events;
 		}
 
-		// Hook for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
-		protected virtual void Prepared()
+		// Hook for parallel critical section testing.
+		protected virtual Task Prepared()
 		{
 			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
 		}
 
-		// Hook for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
-		protected virtual void Conflicted()
+		// Hook for parallel critical section testing.
+		protected virtual Task Conflicted()
 		{
 			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
 		}
 
-		// Hook for parallel critical section testing in DEBUG build only.
-		[Conditional("DEBUG")]
-		protected virtual void Appended()
+		// Hook for parallel critical section testing.
+
+		protected virtual Task Appended()
 		{
 			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
+		}
+
+		// Hook for parallel critical section testing.
+		protected virtual Task Published()
+		{
+			// Keep empty. To be overriden in tests.
+			return Task.CompletedTask;
 		}
 	}
 }
