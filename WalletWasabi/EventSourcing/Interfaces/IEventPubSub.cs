@@ -1,5 +1,7 @@
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.EventSourcing.Records;
+using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.EventSourcing.Interfaces
 {
@@ -11,7 +13,15 @@ namespace WalletWasabi.EventSourcing.Interfaces
 		/// aggregated into an AggregateException and thrown.
 		/// </summary>
 		/// <exception cref="AggregateException">any exception from subscribers are aggregated.</exception>
-		Task PublishAllAsync();
+		/// <exception cref="OperationCanceledException">if <paramref name="cancellationToken"/> requested cancellation</exception>
+		/// <exception cref="ObjectDisposedException">if <paramref name="cancellationToken"/> is disposed</exception>
+		Task PublishAllAsync(CancellationToken cancellationToken);
+
+		/// <summary>
+		/// Enqueues publishing of all events into <see cref="IBackgroundTaskQueue"/>.
+		/// To be done asynchronously later.
+		/// </summary>
+		Task PublishAllInBackgroundQueueAsync();
 
 		/// <summary>
 		/// Subscribes <paramref name="subscriber"/> to topic <typeparamref name="TEvent"/>.

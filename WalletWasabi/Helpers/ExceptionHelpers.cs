@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Helpers
@@ -78,11 +79,14 @@ namespace WalletWasabi.Helpers
 		/// Then throws AggregateException containing all exceptions if any.
 		/// Unpacks one level of AggregateException thrown from an action.
 		/// </summary>
-		public static async Task AggregateExceptionsAsync(IEnumerable<Func<Task>> tasks, string? message = null)
+		/// <exception cref="OperationCanceledException">if <paramref name="cancellationToken"/> requested cancellation</exception>
+		/// <exception cref="ObjectDisposedException">if <paramref name="cancellationToken"/> is disposed</exception>
+		public static async Task AggregateExceptionsAsync(IEnumerable<Func<Task>> tasks, string? message = null, CancellationToken cancellationToken = default)
 		{
 			var exceptions = new List<Exception>();
 			foreach (var task in tasks)
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				try { await task.Invoke().ConfigureAwait(false); }
 				catch (AggregateException excp)
 				{
