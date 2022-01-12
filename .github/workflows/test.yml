@@ -35,15 +35,19 @@ jobs:
 
     - name: WabiSabi "Unit" Tests
       run: dotnet test --no-build --filter "(FullyQualifiedName!~Integration)&(FullyQualifiedName~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+      continue-on-error: true
 
     - name: Other "Unit" Tests
-      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx 
+      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName!~WabiSabi)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+      continue-on-error: true
 
     - name: '"Integration" "Unit" Tests'
-      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx 
+      run: dotnet test --no-build --filter "(FullyQualifiedName~UnitTests)&(FullyQualifiedName~Integration)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+      continue-on-error: true
 
     #- name: '"Integration" Tests'
     #  run: dotnet test --no-build --filter "(FullyQualifiedName!~UnitTests)" --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --logger trx
+    #  continue-on-error: true
 
     - uses: actions/upload-artifact@v2
       with:
